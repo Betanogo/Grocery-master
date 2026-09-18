@@ -170,6 +170,8 @@
   .summary-copy .sub{ font-size:12.5px; color:var(--text-soft); margin-top:2px; }
 
   .section-label{ font-size:12.5px; font-weight:600; color:var(--text-faint); margin:18px 2px 8px; display:flex; align-items:center; justify-content:space-between; }
+  .cat-label{ font-size:11.5px; font-weight:700; color:var(--accent); margin:16px 4px 6px; letter-spacing:0.2px; }
+  .cat-label:first-child{ margin-top:4px; }
 
   .clear-list-btn{
     display:block; width:100%; margin-top:10px; height:44px; border-radius:999px;
@@ -199,6 +201,9 @@
   .item-row.done .item-body{ opacity:0.75; }
   .del-btn{ flex:none; border:none; background:none; color:var(--text-faint); width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:50%; opacity:0.6; }
   .del-btn:active{ background:var(--surface-sunken); opacity:1; }
+  .edit-btn{ flex:none; border:none; background:none; color:var(--text-faint); width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:50%; opacity:0.6; }
+  .edit-btn:active{ background:var(--surface-sunken); opacity:1; }
+  .item-edit-panel{ background:var(--surface-sunken); padding:12px 16px 14px; border-bottom:1px solid var(--border); }
 
   .empty-state{ text-align:center; padding:54px 24px 30px; color:var(--text-soft); }
   .empty-state .emoji{ font-size:38px; margin-bottom:10px; }
@@ -353,79 +358,83 @@
 
   /* ================= catalog ================= */
   var CATALOG = [
-    {ko:"쌀", en:"rice", u:"kg"},{ko:"안남미", en:"jasmine rice", u:"kg"},{ko:"찹쌀", en:"sweet rice", u:"kg"},
-    {ko:"현미", en:"brown rice", u:"kg"},{ko:"잡곡", en:"mixed grains", u:"kg"},{ko:"키친타월", en:"paper towel", u:"개"},
-    {ko:"휴지", en:"toilet paper", u:"개"},{ko:"물티슈", en:"wet wipes", u:"개"},{ko:"계란", en:"eggs", u:"개"},
-    {ko:"메추리알", en:"quail eggs", u:"개"},{ko:"김치", en:"kimchi", u:"개"},{ko:"배추김치", en:"napa cabbage kimchi", u:"개"},
-    {ko:"깍두기", en:"radish kimchi", u:"개"},{ko:"총각김치", en:"ponytail radish kimchi", u:"개"},{ko:"열무김치", en:"young radish kimchi", u:"개"},
-    {ko:"파", en:"green onion", u:"개"},{ko:"대파", en:"green onion (large)", u:"개"},{ko:"쪽파", en:"scallion", u:"개"},
-    {ko:"무", en:"radish", u:"개"},{ko:"무말랭이", en:"dried radish", u:"g"},{ko:"오이", en:"cucumber", u:"개"},
-    {ko:"바나나", en:"banana", u:"개"},{ko:"얼린 망고", en:"frozen mango", u:"g"},{ko:"망고", en:"mango", u:"개"},
-    {ko:"바닐라 프로틴", en:"vanilla protein powder", u:"개"},{ko:"초코 프로틴", en:"chocolate protein powder", u:"개"},
-    {ko:"그릭 요거트", en:"greek yogurt", u:"개"},{ko:"요거트", en:"yogurt", u:"개"},{ko:"빨래세제", en:"laundry detergent", u:"개"},
-    {ko:"섬유유연제", en:"fabric softener", u:"개"},{ko:"주방세제", en:"dish soap", u:"개"},{ko:"부침가루", en:"pancake mix (savory)", u:"g"},
-    {ko:"튀김가루", en:"frying flour", u:"g"},{ko:"밀가루", en:"flour", u:"g"},{ko:"빵가루", en:"bread crumbs", u:"g"},
-    {ko:"만두", en:"dumplings", u:"개"},{ko:"물만두", en:"boiled dumplings", u:"개"},{ko:"군만두", en:"fried dumplings", u:"개"},
-    {ko:"식초", en:"vinegar", u:"개"},{ko:"현미식초", en:"brown rice vinegar", u:"개"},{ko:"다시마", en:"dried kelp", u:"g"},
-    {ko:"멸치", en:"dried anchovy", u:"g"},{ko:"순두부", en:"soft tofu", u:"개"},{ko:"두부", en:"tofu", u:"개"},
-    {ko:"콩비지", en:"soybean pulp", u:"개"},{ko:"깻잎", en:"perilla leaves", u:"개"},{ko:"들깨가루", en:"ground perilla seed", u:"g"},
-    {ko:"들기름", en:"perilla oil", u:"개"},{ko:"배추 작은거", en:"napa cabbage (small)", u:"개"},{ko:"배추", en:"napa cabbage", u:"개"},
-    {ko:"양배추", en:"cabbage", u:"개"},{ko:"할라피뇨", en:"jalapeño", u:"개"},{ko:"청양고추", en:"cheongyang chili", u:"g"},
-    {ko:"고추", en:"chili pepper", u:"g"},{ko:"피망", en:"bell pepper", u:"개"},{ko:"파프리카", en:"paprika (bell pepper)", u:"개"},
-    {ko:"양파", en:"onion", u:"개"},{ko:"마늘", en:"garlic", u:"g"},{ko:"간마늘", en:"minced garlic", u:"g"},
-    {ko:"다진마늘", en:"minced garlic", u:"g"},{ko:"생강", en:"ginger", u:"g"},{ko:"와사비", en:"wasabi", u:"개"},
-    {ko:"연겨자", en:"mustard (yellow, korean)", u:"개"},{ko:"홀그레인 머스타드", en:"whole grain mustard", u:"개"},
-    {ko:"보리차", en:"barley tea", u:"개"},{ko:"옥수수수염차", en:"corn silk tea", u:"개"},{ko:"녹차", en:"green tea", u:"개"},
-    {ko:"간 돼지고기", en:"ground pork", u:"g"},{ko:"간 소고기", en:"ground beef", u:"g"},{ko:"Beef brisket", en:"소 양지", u:"kg"},
-    {ko:"Beef shank", en:"소 사태", u:"kg"},{ko:"고춧가루", en:"red pepper flakes", u:"g"},{ko:"Tenderloin", en:"안심", u:"kg"},
-    {ko:"프로수토", en:"prosciutto", u:"g"},{ko:"살라미", en:"salami", u:"g"},{ko:"생지", en:"pizza dough", u:"개"},
-    {ko:"버섯", en:"mushroom", u:"개"},{ko:"표고버섯", en:"shiitake mushroom", u:"개"},{ko:"새송이버섯", en:"king oyster mushroom", u:"개"},
-    {ko:"양송이버섯", en:"button mushroom", u:"개"},{ko:"팽이버섯", en:"enoki mushroom", u:"개"},{ko:"감자", en:"potato", u:"개"},
-    {ko:"고구마", en:"sweet potato", u:"개"},{ko:"당근", en:"carrot", u:"개"},{ko:"아스파라거스", en:"asparagus", u:"g"},
-    {ko:"브로콜리", en:"broccoli", u:"개"},{ko:"애호박", en:"zucchini (korean)", u:"개"},{ko:"가지", en:"eggplant", u:"개"},
-    {ko:"시금치", en:"spinach", u:"g"},{ko:"참기름", en:"sesame oil", u:"개"},{ko:"올리브유", en:"olive oil", u:"개"},
-    {ko:"카놀라유", en:"canola oil", u:"개"},{ko:"식용유", en:"cooking oil", u:"개"},{ko:"버터", en:"butter", u:"개"},
-    {ko:"생크림", en:"heavy cream", u:"개"},{ko:"우유", en:"milk", u:"개"},{ko:"두유", en:"soy milk", u:"개"},
-    {ko:"치즈", en:"cheese", u:"개"},{ko:"커피필터", en:"coffee filter", u:"개"},{ko:"원두", en:"coffee beans", u:"g"},
-    {ko:"인스턴트커피", en:"instant coffee", u:"개"},{ko:"메밀면", en:"buckwheat noodles", u:"개"},{ko:"우동면", en:"udon noodles", u:"개"},
-    {ko:"칼국수면", en:"kalguksu noodles", u:"개"},{ko:"소면", en:"somyeon noodles", u:"g"},{ko:"당면", en:"glass noodles", u:"g"},
-    {ko:"라면", en:"ramen", u:"개"},{ko:"신라면", en:"shin ramyun", u:"개"},{ko:"불닭볶음면", en:"buldak fire noodles", u:"개"},
-    {ko:"떡국떡", en:"rice cakes for tteokguk", u:"g"},{ko:"떡볶이떡", en:"rice cakes for tteokbokki", u:"g"},
-    {ko:"스테이크 고기", en:"steak", u:"g"},{ko:"닭허벅지 살", en:"chicken thigh", u:"g"},{ko:"닭가슴살", en:"chicken breast", u:"g"},
-    {ko:"닭날개", en:"chicken wings", u:"g"},{ko:"닭볶음탕용", en:"chicken for dakbokkeumtang", u:"g"},{ko:"돼지 안심", en:"pork tenderloin", u:"g"},
-    {ko:"목살", en:"pork neck / collar", u:"g"},{ko:"삼겹살", en:"pork belly", u:"g"},{ko:"앞다리살", en:"pork shoulder", u:"g"},
-    {ko:"베이컨", en:"bacon", u:"g"},{ko:"소시지", en:"sausage", u:"개"},{ko:"스팸", en:"spam", u:"개"},{ko:"햄", en:"ham", u:"g"},
-    {ko:"사워크림", en:"sour cream", u:"개"},{ko:"과카몰리", en:"guacamole", u:"개"},{ko:"아보카도", en:"avocado", u:"개"},
-    {ko:"상추", en:"lettuce", u:"개"},{ko:"양상추", en:"iceberg lettuce", u:"개"},{ko:"도시락 통", en:"lunch box", u:"개"},
-    {ko:"돼지등뼈", en:"pork spine bones", u:"g"},{ko:"감자탕 양념", en:"gamjatang seasoning", u:"개"},{ko:"뭉크프룻", en:"monk fruit sweetener", u:"개"},
-    {ko:"카레가루", en:"curry powder", u:"개"},{ko:"후추", en:"black pepper", u:"개"},{ko:"방어", en:"yellowtail (buri)", u:"g"},
-    {ko:"방어 뱃살", en:"yellowtail belly", u:"g"},{ko:"연어", en:"salmon", u:"g"},{ko:"고등어", en:"mackerel", u:"개"},
-    {ko:"갈치", en:"beltfish (hairtail)", u:"개"},{ko:"삼치", en:"spanish mackerel", u:"개"},{ko:"매운탕거리", en:"spicy fish stew mix", u:"g"},
-    {ko:"바지락 조개", en:"clams (bajirak)", u:"g"},{ko:"홍합", en:"mussels", u:"g"},{ko:"새우", en:"shrimp", u:"g"},
-    {ko:"건새우", en:"dried shrimp", u:"g"},{ko:"칵테일새우", en:"cocktail shrimp", u:"g"},{ko:"새우깡", en:"shrimp crackers (snack)", u:"개"},
-    {ko:"새우젓", en:"salted shrimp", u:"g"},{ko:"오징어", en:"squid", u:"개"},{ko:"낙지", en:"long arm octopus", u:"개"},
-    {ko:"문어", en:"octopus", u:"g"},{ko:"참치캔", en:"canned tuna", u:"개"},{ko:"어묵", en:"fish cake", u:"개"},
-    {ko:"두부어묵", en:"tofu fish cake", u:"개"},{ko:"맛살", en:"crab stick", u:"개"},{ko:"유부", en:"fried tofu pouch", u:"개"},
-    {ko:"와이트 와인", en:"white wine", u:"개"},{ko:"미나리", en:"water dropwort (minari)", u:"g"},{ko:"콩나물", en:"soybean sprouts", u:"g"},
-    {ko:"숙주나물", en:"mung bean sprouts", u:"g"},{ko:"곤이, 이리", en:"fish roe & milt", u:"g"},{ko:"파슬리", en:"parsley", u:"개"},
-    {ko:"바질", en:"basil", u:"개"},{ko:"고수", en:"cilantro", u:"개"},{ko:"방울토마토", en:"cherry tomato", u:"g"},
-    {ko:"토마토", en:"tomato", u:"개"},{ko:"쑥갓", en:"crown daisy", u:"g"},{ko:"호두", en:"walnut", u:"g"},
-    {ko:"아몬드", en:"almond", u:"g"},{ko:"캐슈넛", en:"cashew", u:"g"},{ko:"땅콩", en:"peanut", u:"g"},
-    {ko:"우스터 소스", en:"worcestershire sauce", u:"개"},{ko:"진간장", en:"soy sauce (jin)", u:"개"},{ko:"국간장", en:"soy sauce (guk)", u:"개"},
-    {ko:"고추장", en:"gochujang", u:"개"},{ko:"된장", en:"doenjang", u:"개"},{ko:"쌈장", en:"ssamjang", u:"개"},
-    {ko:"굴소스", en:"oyster sauce", u:"개"},{ko:"멸치액젓", en:"anchovy fish sauce", u:"개"},{ko:"까나리액젓", en:"sandlance fish sauce", u:"개"},
-    {ko:"미림", en:"mirin", u:"개"},{ko:"맛술", en:"cooking rice wine", u:"개"},{ko:"다시다", en:"beef/anchovy stock powder", u:"개"},
-    {ko:"설탕", en:"sugar", u:"g"},{ko:"소금", en:"salt", u:"g"},{ko:"집락 중간사이즈", en:"ziploc bag (medium)", u:"개"},
-    {ko:"지퍼백", en:"ziploc bag", u:"개"},{ko:"호일", en:"aluminum foil", u:"개"},{ko:"랩", en:"plastic wrap", u:"개"},
-    {ko:"쓰레기봉투", en:"trash bag", u:"개"},{ko:"족발 고기", en:"jokbal (pig trotter meat)", u:"g"},{ko:"샴푸", en:"shampoo", u:"개"},
-    {ko:"바디워시", en:"body wash", u:"개"},{ko:"치약", en:"toothpaste", u:"개"},{ko:"칫솔", en:"toothbrush", u:"개"},
-    {ko:"사과", en:"apple", u:"개"},{ko:"배", en:"pear", u:"개"},{ko:"포도", en:"grapes", u:"g"},{ko:"딸기", en:"strawberry", u:"g"},
-    {ko:"수박", en:"watermelon", u:"개"},{ko:"참외", en:"korean melon", u:"개"},{ko:"복숭아", en:"peach", u:"개"},
-    {ko:"귤", en:"mandarin orange", u:"개"},{ko:"레몬", en:"lemon", u:"개"},{ko:"라임", en:"lime", u:"개"},
-    {ko:"파인애플", en:"pineapple", u:"개"},{ko:"부추", en:"garlic chives", u:"g"},{ko:"깻잎순", en:"perilla shoots", u:"g"},
-    {ko:"미역", en:"dried seaweed (for soup)", u:"g"},{ko:"김", en:"seaweed (gim)", u:"개"}
+    {ko:"쌀", en:"rice", u:"kg", cat:"쌀·면·곡물"},{ko:"안남미", en:"jasmine rice", u:"kg", cat:"쌀·면·곡물"},{ko:"찹쌀", en:"sweet rice", u:"kg", cat:"쌀·면·곡물"},
+    {ko:"현미", en:"brown rice", u:"kg", cat:"쌀·면·곡물"},{ko:"잡곡", en:"mixed grains", u:"kg", cat:"쌀·면·곡물"},{ko:"키친타월", en:"paper towel", u:"개", cat:"생활용품"},
+    {ko:"휴지", en:"toilet paper", u:"개", cat:"생활용품"},{ko:"물티슈", en:"wet wipes", u:"개", cat:"생활용품"},{ko:"계란", en:"eggs", u:"개", cat:"두부·계란·유제품"},
+    {ko:"메추리알", en:"quail eggs", u:"개", cat:"두부·계란·유제품"},{ko:"김치", en:"kimchi", u:"개", cat:"김치·반찬"},{ko:"배추김치", en:"napa cabbage kimchi", u:"개", cat:"김치·반찬"},
+    {ko:"깍두기", en:"radish kimchi", u:"개", cat:"김치·반찬"},{ko:"총각김치", en:"ponytail radish kimchi", u:"개", cat:"김치·반찬"},{ko:"열무김치", en:"young radish kimchi", u:"개", cat:"김치·반찬"},
+    {ko:"파", en:"green onion", u:"개", cat:"채소"},{ko:"대파", en:"green onion (large)", u:"개", cat:"채소"},{ko:"쪽파", en:"scallion", u:"개", cat:"채소"},
+    {ko:"무", en:"radish", u:"개", cat:"채소"},{ko:"무말랭이", en:"dried radish", u:"g", cat:"채소"},{ko:"오이", en:"cucumber", u:"개", cat:"채소"},
+    {ko:"바나나", en:"banana", u:"개", cat:"과일"},{ko:"얼린 망고", en:"frozen mango", u:"g", cat:"과일"},{ko:"망고", en:"mango", u:"개", cat:"과일"},
+    {ko:"바닐라 프로틴", en:"vanilla protein powder", u:"개", cat:"음료·커피"},{ko:"초코 프로틴", en:"chocolate protein powder", u:"개", cat:"음료·커피"},
+    {ko:"그릭 요거트", en:"greek yogurt", u:"개", cat:"두부·계란·유제품"},{ko:"요거트", en:"yogurt", u:"개", cat:"두부·계란·유제품"},{ko:"빨래세제", en:"laundry detergent", u:"개", cat:"생활용품"},
+    {ko:"섬유유연제", en:"fabric softener", u:"개", cat:"생활용품"},{ko:"주방세제", en:"dish soap", u:"개", cat:"생활용품"},{ko:"부침가루", en:"pancake mix (savory)", u:"g", cat:"쌀·면·곡물"},
+    {ko:"튀김가루", en:"frying flour", u:"g", cat:"쌀·면·곡물"},{ko:"밀가루", en:"flour", u:"g", cat:"쌀·면·곡물"},{ko:"빵가루", en:"bread crumbs", u:"g", cat:"쌀·면·곡물"},
+    {ko:"만두", en:"dumplings", u:"개", cat:"냉동·즉석식품"},{ko:"물만두", en:"boiled dumplings", u:"개", cat:"냉동·즉석식품"},{ko:"군만두", en:"fried dumplings", u:"개", cat:"냉동·즉석식품"},
+    {ko:"식초", en:"vinegar", u:"개", cat:"조미료·소스"},{ko:"현미식초", en:"brown rice vinegar", u:"개", cat:"조미료·소스"},{ko:"다시마", en:"dried kelp", u:"g", cat:"수산물"},
+    {ko:"멸치", en:"dried anchovy", u:"g", cat:"수산물"},{ko:"순두부", en:"soft tofu", u:"개", cat:"두부·계란·유제품"},{ko:"두부", en:"tofu", u:"개", cat:"두부·계란·유제품"},
+    {ko:"콩비지", en:"soybean pulp", u:"개", cat:"두부·계란·유제품"},{ko:"깻잎", en:"perilla leaves", u:"개", cat:"채소"},{ko:"들깨가루", en:"ground perilla seed", u:"g", cat:"조미료·소스"},
+    {ko:"들기름", en:"perilla oil", u:"개", cat:"조미료·소스"},{ko:"배추 작은거", en:"napa cabbage (small)", u:"개", cat:"채소"},{ko:"배추", en:"napa cabbage", u:"개", cat:"채소"},
+    {ko:"양배추", en:"cabbage", u:"개", cat:"채소"},{ko:"할라피뇨", en:"jalapeño", u:"개", cat:"채소"},{ko:"청양고추", en:"cheongyang chili", u:"g", cat:"채소"},
+    {ko:"고추", en:"chili pepper", u:"g", cat:"채소"},{ko:"피망", en:"bell pepper", u:"개", cat:"채소"},{ko:"파프리카", en:"paprika (bell pepper)", u:"개", cat:"채소"},
+    {ko:"양파", en:"onion", u:"개", cat:"채소"},{ko:"마늘", en:"garlic", u:"g", cat:"채소"},{ko:"간마늘", en:"minced garlic", u:"g", cat:"채소"},
+    {ko:"다진마늘", en:"minced garlic", u:"g", cat:"채소"},{ko:"생강", en:"ginger", u:"g", cat:"채소"},{ko:"와사비", en:"wasabi", u:"개", cat:"조미료·소스"},
+    {ko:"연겨자", en:"mustard (yellow, korean)", u:"개", cat:"조미료·소스"},{ko:"홀그레인 머스타드", en:"whole grain mustard", u:"개", cat:"조미료·소스"},
+    {ko:"보리차", en:"barley tea", u:"개", cat:"음료·커피"},{ko:"옥수수수염차", en:"corn silk tea", u:"개", cat:"음료·커피"},{ko:"녹차", en:"green tea", u:"개", cat:"음료·커피"},
+    {ko:"간 돼지고기", en:"ground pork", u:"g", cat:"정육"},{ko:"간 소고기", en:"ground beef", u:"g", cat:"정육"},{ko:"Beef brisket", en:"소 양지", u:"kg", cat:"정육"},
+    {ko:"Beef shank", en:"소 사태", u:"kg", cat:"정육"},{ko:"고춧가루", en:"red pepper flakes", u:"g", cat:"조미료·소스"},{ko:"Tenderloin", en:"안심", u:"kg", cat:"정육"},
+    {ko:"프로수토", en:"prosciutto", u:"g", cat:"정육"},{ko:"살라미", en:"salami", u:"g", cat:"정육"},{ko:"생지", en:"pizza dough", u:"개", cat:"냉동·즉석식품"},
+    {ko:"버섯", en:"mushroom", u:"개", cat:"채소"},{ko:"표고버섯", en:"shiitake mushroom", u:"개", cat:"채소"},{ko:"새송이버섯", en:"king oyster mushroom", u:"개", cat:"채소"},
+    {ko:"양송이버섯", en:"button mushroom", u:"개", cat:"채소"},{ko:"팽이버섯", en:"enoki mushroom", u:"개", cat:"채소"},{ko:"감자", en:"potato", u:"개", cat:"채소"},
+    {ko:"고구마", en:"sweet potato", u:"개", cat:"채소"},{ko:"당근", en:"carrot", u:"개", cat:"채소"},{ko:"아스파라거스", en:"asparagus", u:"g", cat:"채소"},
+    {ko:"브로콜리", en:"broccoli", u:"개", cat:"채소"},{ko:"애호박", en:"zucchini (korean)", u:"개", cat:"채소"},{ko:"가지", en:"eggplant", u:"개", cat:"채소"},
+    {ko:"시금치", en:"spinach", u:"g", cat:"채소"},{ko:"참기름", en:"sesame oil", u:"개", cat:"조미료·소스"},{ko:"올리브유", en:"olive oil", u:"개", cat:"조미료·소스"},
+    {ko:"카놀라유", en:"canola oil", u:"개", cat:"조미료·소스"},{ko:"식용유", en:"cooking oil", u:"개", cat:"조미료·소스"},{ko:"버터", en:"butter", u:"개", cat:"두부·계란·유제품"},
+    {ko:"생크림", en:"heavy cream", u:"개", cat:"두부·계란·유제품"},{ko:"우유", en:"milk", u:"개", cat:"두부·계란·유제품"},{ko:"두유", en:"soy milk", u:"개", cat:"두부·계란·유제품"},
+    {ko:"치즈", en:"cheese", u:"개", cat:"두부·계란·유제품"},{ko:"커피필터", en:"coffee filter", u:"개", cat:"생활용품"},{ko:"원두", en:"coffee beans", u:"g", cat:"음료·커피"},
+    {ko:"인스턴트커피", en:"instant coffee", u:"개", cat:"음료·커피"},{ko:"메밀면", en:"buckwheat noodles", u:"개", cat:"쌀·면·곡물"},{ko:"우동면", en:"udon noodles", u:"개", cat:"쌀·면·곡물"},
+    {ko:"칼국수면", en:"kalguksu noodles", u:"개", cat:"쌀·면·곡물"},{ko:"소면", en:"somyeon noodles", u:"g", cat:"쌀·면·곡물"},{ko:"당면", en:"glass noodles", u:"g", cat:"쌀·면·곡물"},
+    {ko:"라면", en:"ramen", u:"개", cat:"쌀·면·곡물"},{ko:"신라면", en:"shin ramyun", u:"개", cat:"쌀·면·곡물"},{ko:"불닭볶음면", en:"buldak fire noodles", u:"개", cat:"쌀·면·곡물"},
+    {ko:"떡국떡", en:"rice cakes for tteokguk", u:"g", cat:"쌀·면·곡물"},{ko:"떡볶이떡", en:"rice cakes for tteokbokki", u:"g", cat:"쌀·면·곡물"},
+    {ko:"스테이크 고기", en:"steak", u:"g", cat:"정육"},{ko:"닭허벅지 살", en:"chicken thigh", u:"g", cat:"정육"},{ko:"닭가슴살", en:"chicken breast", u:"g", cat:"정육"},
+    {ko:"닭날개", en:"chicken wings", u:"g", cat:"정육"},{ko:"닭볶음탕용", en:"chicken for dakbokkeumtang", u:"g", cat:"정육"},{ko:"돼지 안심", en:"pork tenderloin", u:"g", cat:"정육"},
+    {ko:"목살", en:"pork neck / collar", u:"g", cat:"정육"},{ko:"삼겹살", en:"pork belly", u:"g", cat:"정육"},{ko:"앞다리살", en:"pork shoulder", u:"g", cat:"정육"},
+    {ko:"베이컨", en:"bacon", u:"g", cat:"정육"},{ko:"소시지", en:"sausage", u:"개", cat:"정육"},{ko:"스팸", en:"spam", u:"개", cat:"정육"},{ko:"햄", en:"ham", u:"g", cat:"정육"},
+    {ko:"사워크림", en:"sour cream", u:"개", cat:"두부·계란·유제품"},{ko:"과카몰리", en:"guacamole", u:"개", cat:"김치·반찬"},{ko:"아보카도", en:"avocado", u:"개", cat:"채소"},
+    {ko:"상추", en:"lettuce", u:"개", cat:"채소"},{ko:"양상추", en:"iceberg lettuce", u:"개", cat:"채소"},{ko:"도시락 통", en:"lunch box", u:"개", cat:"생활용품"},
+    {ko:"돼지등뼈", en:"pork spine bones", u:"g", cat:"정육"},{ko:"감자탕 양념", en:"gamjatang seasoning", u:"개", cat:"냉동·즉석식품"},{ko:"뭉크프룻", en:"monk fruit sweetener", u:"개", cat:"조미료·소스"},
+    {ko:"카레가루", en:"curry powder", u:"개", cat:"조미료·소스"},{ko:"후추", en:"black pepper", u:"개", cat:"조미료·소스"},{ko:"방어", en:"yellowtail (buri)", u:"g", cat:"수산물"},
+    {ko:"방어 뱃살", en:"yellowtail belly", u:"g", cat:"수산물"},{ko:"연어", en:"salmon", u:"g", cat:"수산물"},{ko:"고등어", en:"mackerel", u:"개", cat:"수산물"},
+    {ko:"갈치", en:"beltfish (hairtail)", u:"개", cat:"수산물"},{ko:"삼치", en:"spanish mackerel", u:"개", cat:"수산물"},{ko:"매운탕거리", en:"spicy fish stew mix", u:"g", cat:"수산물"},
+    {ko:"바지락 조개", en:"clams (bajirak)", u:"g", cat:"수산물"},{ko:"홍합", en:"mussels", u:"g", cat:"수산물"},{ko:"새우", en:"shrimp", u:"g", cat:"수산물"},
+    {ko:"건새우", en:"dried shrimp", u:"g", cat:"수산물"},{ko:"칵테일새우", en:"cocktail shrimp", u:"g", cat:"수산물"},{ko:"새우깡", en:"shrimp crackers (snack)", u:"개", cat:"수산물"},
+    {ko:"새우젓", en:"salted shrimp", u:"g", cat:"수산물"},{ko:"오징어", en:"squid", u:"개", cat:"수산물"},{ko:"낙지", en:"long arm octopus", u:"개", cat:"수산물"},
+    {ko:"문어", en:"octopus", u:"g", cat:"수산물"},{ko:"참치캔", en:"canned tuna", u:"개", cat:"수산물"},{ko:"어묵", en:"fish cake", u:"개", cat:"수산물"},
+    {ko:"두부어묵", en:"tofu fish cake", u:"개", cat:"수산물"},{ko:"맛살", en:"crab stick", u:"개", cat:"수산물"},{ko:"유부", en:"fried tofu pouch", u:"개", cat:"수산물"},
+    {ko:"와이트 와인", en:"white wine", u:"개", cat:"음료·커피"},{ko:"미나리", en:"water dropwort (minari)", u:"g", cat:"채소"},{ko:"콩나물", en:"soybean sprouts", u:"g", cat:"채소"},
+    {ko:"숙주나물", en:"mung bean sprouts", u:"g", cat:"채소"},{ko:"곤이, 이리", en:"fish roe & milt", u:"g", cat:"수산물"},{ko:"파슬리", en:"parsley", u:"개", cat:"채소"},
+    {ko:"바질", en:"basil", u:"개", cat:"채소"},{ko:"고수", en:"cilantro", u:"개", cat:"채소"},{ko:"방울토마토", en:"cherry tomato", u:"g", cat:"채소"},
+    {ko:"토마토", en:"tomato", u:"개", cat:"채소"},{ko:"쑥갓", en:"crown daisy", u:"g", cat:"채소"},{ko:"호두", en:"walnut", u:"g", cat:"과일"},
+    {ko:"아몬드", en:"almond", u:"g", cat:"과일"},{ko:"캐슈넛", en:"cashew", u:"g", cat:"과일"},{ko:"땅콩", en:"peanut", u:"g", cat:"과일"},
+    {ko:"우스터 소스", en:"worcestershire sauce", u:"개", cat:"조미료·소스"},{ko:"진간장", en:"soy sauce (jin)", u:"개", cat:"조미료·소스"},{ko:"국간장", en:"soy sauce (guk)", u:"개", cat:"조미료·소스"},
+    {ko:"고추장", en:"gochujang", u:"개", cat:"조미료·소스"},{ko:"된장", en:"doenjang", u:"개", cat:"조미료·소스"},{ko:"쌈장", en:"ssamjang", u:"개", cat:"조미료·소스"},
+    {ko:"굴소스", en:"oyster sauce", u:"개", cat:"조미료·소스"},{ko:"멸치액젓", en:"anchovy fish sauce", u:"개", cat:"조미료·소스"},{ko:"까나리액젓", en:"sandlance fish sauce", u:"개", cat:"조미료·소스"},
+    {ko:"미림", en:"mirin", u:"개", cat:"조미료·소스"},{ko:"맛술", en:"cooking rice wine", u:"개", cat:"조미료·소스"},{ko:"다시다", en:"beef/anchovy stock powder", u:"개", cat:"조미료·소스"},
+    {ko:"설탕", en:"sugar", u:"g", cat:"조미료·소스"},{ko:"소금", en:"salt", u:"g", cat:"조미료·소스"},{ko:"집락 중간사이즈", en:"ziploc bag (medium)", u:"개", cat:"생활용품"},
+    {ko:"지퍼백", en:"ziploc bag", u:"개", cat:"생활용품"},{ko:"호일", en:"aluminum foil", u:"개", cat:"생활용품"},{ko:"랩", en:"plastic wrap", u:"개", cat:"생활용품"},
+    {ko:"쓰레기봉투", en:"trash bag", u:"개", cat:"생활용품"},{ko:"족발 고기", en:"jokbal (pig trotter meat)", u:"g", cat:"정육"},{ko:"샴푸", en:"shampoo", u:"개", cat:"생활용품"},
+    {ko:"바디워시", en:"body wash", u:"개", cat:"생활용품"},{ko:"치약", en:"toothpaste", u:"개", cat:"생활용품"},{ko:"칫솔", en:"toothbrush", u:"개", cat:"생활용품"},
+    {ko:"사과", en:"apple", u:"개", cat:"과일"},{ko:"배", en:"pear", u:"개", cat:"과일"},{ko:"포도", en:"grapes", u:"g", cat:"과일"},{ko:"딸기", en:"strawberry", u:"g", cat:"과일"},
+    {ko:"수박", en:"watermelon", u:"개", cat:"과일"},{ko:"참외", en:"korean melon", u:"개", cat:"과일"},{ko:"복숭아", en:"peach", u:"개", cat:"과일"},
+    {ko:"귤", en:"mandarin orange", u:"개", cat:"과일"},{ko:"레몬", en:"lemon", u:"개", cat:"과일"},{ko:"라임", en:"lime", u:"개", cat:"과일"},
+    {ko:"파인애플", en:"pineapple", u:"개", cat:"과일"},{ko:"부추", en:"garlic chives", u:"g", cat:"채소"},{ko:"깻잎순", en:"perilla shoots", u:"g", cat:"채소"},
+    {ko:"미역", en:"dried seaweed (for soup)", u:"g", cat:"수산물"},{ko:"김", en:"seaweed (gim)", u:"개", cat:"수산물"}
   ];
   var UNITS = ["개","g","kg","lb"];
+  var CATEGORY_ORDER = ["정육","수산물","채소","과일","쌀·면·곡물","두부·계란·유제품","김치·반찬","조미료·소스","냉동·즉석식품","음료·커피","생활용품","기타"];
+  var CATALOG_CAT_MAP = {};
+  CATALOG.forEach(function(it){ CATALOG_CAT_MAP[it.ko] = it.cat || "기타"; });
+  function categoryOf(name){ return CATALOG_CAT_MAP[name] || "기타"; }
 
   var SEED_ITEMS = [
     ["쌀",1,"kg",true],["안남미",1,"kg",true],["키친타월",1,"개",true],["휴지",1,"개",true],
@@ -474,6 +483,9 @@
   var clearConfirmOpen = false;
   var historyOpen = false;
   var lastSeenHistoryAt = 0;
+  var editingItemId = null;
+  var editQty = 1;
+  var editUnit = "개";
 
   var el = {
     catalogInput: document.getElementById('catalogInput'),
@@ -622,6 +634,12 @@
       .then(function(){ logHistory(next ? 'check' : 'uncheck', item.name); })
       .catch(function(e){ console.error(e); });
   }
+  function updateItemQty(item, qty, unit){
+    if(!fbStore) return;
+    fbStore.collection('items').doc(item.id).update({ qty: qty, unit: unit })
+      .then(function(){ logHistory('edit', item.name, null, qty, unit); })
+      .catch(function(e){ console.error(e); flashPill('수정 실패 — 연결을 확인해주세요'); });
+  }
   function deleteItem(item){
     if(!fbStore) return;
     fbStore.collection('items').doc(item.id).delete()
@@ -635,9 +653,9 @@
       .then(function(){ logHistory('clear', null, count); flashPill('오늘 장보기 완료! 리스트를 비웠어요'); })
       .catch(function(e){ console.error('clear failed', e); });
   }
-  function logHistory(type, itemName, count){
+  function logHistory(type, itemName, count, qty, unit){
     if(!fbStore) return;
-    fbStore.collection('history').add({ type:type, item:itemName||null, count:count||null, who:userName, at:Date.now() })
+    fbStore.collection('history').add({ type:type, item:itemName||null, count:count||null, qty:(qty===undefined?null:qty), unit:unit||null, who:userName, at:Date.now() })
       .catch(function(e){ console.error('history log failed', e); });
   }
 
@@ -681,18 +699,43 @@
     if(visibleItems.length === 0){
       html += '<div class="empty-search" style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-m);">검색 결과가 없어요</div>';
     } else {
-      html += '<div class="list-group">';
+      var groups = {};
       visibleItems.forEach(function(item){
-        html += '<div class="item-row' + (item.checked ? ' done' : '') + '" data-id="' + item.id + '">' +
-          '<div class="checkbox' + (item.checked ? ' checked' : '') + '" data-toggle="' + item.id + '">' +
-          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>' +
-          '<div class="item-body" data-toggle="' + item.id + '">' +
-          '<div class="item-name">' + escapeHtml(item.name) + '</div>' +
-          '<div class="item-qty">' + formatQty(item.qty) + item.unit + '</div></div>' +
-          '<button class="del-btn" data-del="' + item.id + '" aria-label="삭제">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div>';
+        var cat = categoryOf(item.name);
+        if(!groups[cat]) groups[cat] = [];
+        groups[cat].push(item);
       });
-      html += '</div>';
+      var orderedCats = CATEGORY_ORDER.filter(function(c){ return groups[c] && groups[c].length; });
+      Object.keys(groups).forEach(function(c){ if(orderedCats.indexOf(c) === -1) orderedCats.push(c); });
+
+      orderedCats.forEach(function(cat){
+        html += '<div class="cat-label">' + escapeHtml(cat) + '</div><div class="list-group">';
+        groups[cat].forEach(function(item){
+          html += '<div class="item-row' + (item.checked ? ' done' : '') + '" data-id="' + item.id + '">' +
+            '<div class="checkbox' + (item.checked ? ' checked' : '') + '" data-toggle="' + item.id + '">' +
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>' +
+            '<div class="item-body" data-toggle="' + item.id + '">' +
+            '<div class="item-name">' + escapeHtml(item.name) + '</div>' +
+            '<div class="item-qty">' + formatQty(item.qty) + item.unit + '</div></div>' +
+            '<button class="edit-btn" data-edit="' + item.id + '" aria-label="수정">' +
+            '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>' +
+            '<button class="del-btn" data-del="' + item.id + '" aria-label="삭제">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div>';
+          if(editingItemId === item.id){
+            html += '<div class="item-edit-panel" data-edit-panel="' + item.id + '">' +
+              '<div class="row1" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">' +
+              '<div class="qty-stepper"><button id="editQtyMinus" aria-label="빼기">−</button>' +
+              '<input id="editQtyInput" type="number" min="0" step="0.1" value="' + editQty + '">' +
+              '<button id="editQtyPlus" aria-label="더하기">+</button></div>' +
+              '<div class="unit-chips" id="editUnitChips">' +
+              UNITS.map(function(u){ return '<div class="unit-chip' + (u===editUnit ? ' sel' : '') + '" data-unit="' + u + '">' + u + '</div>'; }).join('') +
+              '</div></div>' +
+              '<div class="row2" style="display:flex; gap:8px;"><button class="cancel-add-btn" id="editCancelBtn">취소</button>' +
+              '<button class="confirm-add-btn" id="editSaveBtn">저장</button></div></div>';
+          }
+        });
+        html += '</div>';
+      });
     }
 
     el.main.innerHTML = html;
@@ -710,6 +753,49 @@
         if(item) deleteItem(item);
       });
     });
+    el.main.querySelectorAll('[data-edit]').forEach(function(node){
+      node.addEventListener('click', function(e){
+        e.stopPropagation();
+        var id = node.getAttribute('data-edit');
+        if(editingItemId === id){ editingItemId = null; renderMain(); return; }
+        var item = items.find(function(i){ return i.id === id; });
+        if(!item) return;
+        editingItemId = id; editQty = item.qty; editUnit = item.unit;
+        renderMain();
+      });
+    });
+    var editPanel = document.querySelector('[data-edit-panel]');
+    if(editPanel){
+      var editQtyInput = document.getElementById('editQtyInput');
+      document.getElementById('editQtyMinus').addEventListener('click', function(){
+        var v = Math.max(0, (parseFloat(editQtyInput.value)||0) - 1); editQtyInput.value = v; editQty = v;
+      });
+      document.getElementById('editQtyPlus').addEventListener('click', function(){
+        var v = (parseFloat(editQtyInput.value)||0) + 1; editQtyInput.value = v; editQty = v;
+      });
+      editQtyInput.addEventListener('click', function(e){ e.stopPropagation(); });
+      editQtyInput.addEventListener('input', function(){ editQty = parseFloat(editQtyInput.value)||0; });
+      document.getElementById('editUnitChips').querySelectorAll('.unit-chip').forEach(function(chip){
+        chip.addEventListener('click', function(e){
+          e.stopPropagation();
+          editUnit = chip.getAttribute('data-unit');
+          document.getElementById('editUnitChips').querySelectorAll('.unit-chip').forEach(function(c){ c.classList.remove('sel'); });
+          chip.classList.add('sel');
+        });
+      });
+      document.getElementById('editCancelBtn').addEventListener('click', function(e){
+        e.stopPropagation(); editingItemId = null; renderMain();
+      });
+      document.getElementById('editSaveBtn').addEventListener('click', function(e){
+        e.stopPropagation();
+        var item = items.find(function(i){ return i.id === editingItemId; });
+        var qty = editQty > 0 ? editQty : 1;
+        if(item) updateItemQty(item, qty, editUnit);
+        editingItemId = null;
+        renderMain();
+      });
+      editPanel.addEventListener('click', function(e){ e.stopPropagation(); });
+    }
     var clearBtn = document.getElementById('clearListBtn');
     if(clearBtn) clearBtn.addEventListener('click', function(){ clearConfirmOpen = true; renderMain(); });
     var clearNoBtn = document.getElementById('clearNoBtn');
@@ -739,6 +825,7 @@
       case 'check': return escapeHtml(h.item) + ' 체크함';
       case 'uncheck': return escapeHtml(h.item) + ' 체크 해제함';
       case 'delete': return escapeHtml(h.item) + ' 삭제함';
+      case 'edit': return escapeHtml(h.item) + '을(를) ' + formatQty(h.qty) + (h.unit||'') + '(으)로 수정함';
       case 'clear': return '리스트 ' + (h.count||0) + '개 비움';
       default: return '';
     }
