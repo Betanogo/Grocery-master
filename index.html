@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>오늘 뭐 사지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#2F6B47">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="장보기">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+  :root{
+    --bg:#F2F5F1; --surface:#FFFFFF; --surface-sunken:#E9EFE8;
+    --text:#1C2620; --text-soft:#5B6960; --text-faint:#93A199;
+    --border:#DCE4DA; --accent:#2F6B47; --accent-soft:#DCEBE1;
+    --accent-2:#E07A2C; --accent-2-soft:#FBE6D3; --done:#AEB8AF;
+    --radius-s:10px; --radius-m:16px; --radius-l:22px;
+    --shadow-card: 0 1px 2px rgba(28,38,32,0.06), 0 2px 12px rgba(28,38,32,0.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12160F; --surface:#1B221A; --surface-sunken:#212A1F;
+      --text:#EDF1EA; --text-soft:#A7B4A4; --text-faint:#6C776A;
+      --border:#2B342A; --accent:#6BC28C; --accent-soft:#223A2A;
+      --accent-2:#F0965A; --accent-2-soft:#3A2A1B; --done:#4B564A;
+      --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 2px 14px rgba(0,0,0,0.28);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12160F; --surface:#1B221A; --surface-sunken:#212A1F;
+    --text:#EDF1EA; --text-soft:#A7B4A4; --text-faint:#6C776A;
+    --border:#2B342A; --accent:#6BC28C; --accent-soft:#223A2A;
+    --accent-2:#F0965A; --accent-2-soft:#3A2A1B; --done:#4B564A;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 2px 14px rgba(0,0,0,0.28);
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:'Roboto','IBM Plex Sans KR',sans-serif;
+    -webkit-font-smoothing:antialiased; min-height:100dvh;
+  }
+  button, input, textarea{ font-family:inherit; }
+
+  .app{
+    max-width:480px; margin:0 auto; min-height:100dvh;
+    background:var(--bg); display:flex; flex-direction:column; position:relative;
+  }
+
+  /* ---------- header ---------- */
+  header.top{
+    position:sticky; top:0; z-index:30; background:var(--bg);
+    padding:14px 16px 10px; border-bottom:1px solid transparent;
+    transition:border-color .2s ease;
+  }
+  header.top.scrolled{ border-bottom-color:var(--border); }
+
+  .title-row{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px; gap:8px; }
+  .title-row h1{ font-size:20px; font-weight:700; margin:0; letter-spacing:-0.2px; }
+  .title-row .right-meta{ display:flex; align-items:center; gap:10px; }
+  .title-row .sub{ font-size:12.5px; color:var(--text-soft); font-weight:500; white-space:nowrap; }
+
+  .history-btn{
+    flex:none; width:34px; height:34px; border-radius:50%;
+    border:1.5px solid var(--border); background:var(--surface);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-soft); cursor:pointer; position:relative;
+  }
+  .history-btn .dotnew{
+    position:absolute; top:-2px; right:-2px; width:9px; height:9px; border-radius:50%;
+    background:var(--accent-2); border:2px solid var(--bg); display:none;
+  }
+  .history-btn.has-new .dotnew{ display:block; }
+
+  .search-row{ display:flex; align-items:center; gap:8px; }
+  .search-box{
+    flex:1; display:flex; align-items:center; gap:8px;
+    background:var(--surface); border:1.5px solid var(--border);
+    border-radius:999px; padding:0 14px; height:46px;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .search-box:focus-within{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .search-box svg{ flex:none; color:var(--text-faint); }
+  .search-box input{ flex:1; border:none; outline:none; background:transparent; font-size:15.5px; color:var(--text); min-width:0; height:100%; }
+  .search-box input::placeholder{ color:var(--text-faint); }
+  .search-box .clear-btn{ flex:none; border:none; background:none; color:var(--text-faint); padding:4px; cursor:pointer; display:flex; }
+
+  .icon-btn{
+    flex:none; width:46px; height:46px; border-radius:50%;
+    border:1.5px solid var(--border); background:var(--surface);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-soft); cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .icon-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+
+  .list-search-panel{ overflow:hidden; max-height:0; transition:max-height .22s ease; }
+  .list-search-panel.open{ max-height:60px; margin-top:8px; }
+  .list-search-panel input{
+    width:100%; height:40px; border-radius:999px; border:1.5px solid var(--accent);
+    padding:0 14px; font-size:14.5px; background:var(--accent-soft); color:var(--text); outline:none;
+  }
+
+  /* ---------- catalog dropdown ---------- */
+  .catalog-panel{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-m);
+    margin-top:10px; box-shadow:var(--shadow-card); overflow:hidden;
+  }
+  .catalog-list{ max-height:52vh; overflow-y:auto; }
+  .catalog-row{ display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--border); }
+  .catalog-row:last-child{ border-bottom:none; }
+  .catalog-row .names{ flex:1; min-width:0; }
+  .catalog-row .name-ko{ font-size:15px; font-weight:500; }
+  .catalog-row .name-en{ font-size:12px; color:var(--text-faint); margin-top:1px; }
+
+  .plus-btn{
+    flex:none; width:32px; height:32px; border-radius:50%; border:none;
+    background:var(--accent-soft); color:var(--accent);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition:transform .1s ease, background .15s ease;
+  }
+  .plus-btn:active{ transform:scale(0.9); }
+  .plus-btn.rotate{ background:var(--accent); color:#fff; transform:rotate(45deg); }
+
+  .add-custom-btn{
+    display:flex; align-items:center; gap:10px; width:100%; padding:13px 14px;
+    background:var(--accent-2-soft); border:none; border-top:1px solid var(--border);
+    cursor:pointer; text-align:left;
+  }
+  .add-custom-btn .plus-btn{ background:var(--accent-2); color:#fff; }
+  .add-custom-btn .txt{ font-size:14.5px; font-weight:500; color:var(--accent-2); }
+  .add-custom-btn .txt b{ font-weight:700; }
+
+  .empty-search{ padding:22px 14px; text-align:center; color:var(--text-faint); font-size:13.5px; }
+
+  /* ---------- qty sheet ---------- */
+  .qty-sheet{ padding:12px 14px 14px; background:var(--surface-sunken); border-top:1px solid var(--border); }
+  .qty-sheet .row1{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .qty-stepper{
+    display:flex; align-items:center; background:var(--surface); border:1.5px solid var(--border);
+    border-radius:999px; overflow:hidden; flex:none;
+  }
+  .qty-stepper button{ width:34px; height:34px; border:none; background:transparent; color:var(--accent); font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .qty-stepper input{ width:42px; text-align:center; border:none; background:transparent; outline:none; font-size:15px; font-weight:600; color:var(--text); -moz-appearance:textfield; }
+  .qty-stepper input::-webkit-outer-spin-button, .qty-stepper input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .unit-chips{ display:flex; gap:6px; flex:1; flex-wrap:wrap; }
+  .unit-chip{ padding:7px 13px; border-radius:999px; border:1.5px solid var(--border); background:var(--surface); color:var(--text-soft); font-size:13.5px; font-weight:500; cursor:pointer; }
+  .unit-chip.sel{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .qty-sheet .row2{ display:flex; gap:8px; }
+  .confirm-add-btn{ flex:1; height:38px; border:none; border-radius:999px; background:var(--accent); color:#fff; font-size:14.5px; font-weight:700; cursor:pointer; }
+  .cancel-add-btn{ height:38px; padding:0 16px; border:1.5px solid var(--border); border-radius:999px; background:var(--surface); color:var(--text-soft); font-size:14px; font-weight:500; cursor:pointer; }
+
+  /* ---------- main ---------- */
+  main{ flex:1; padding:14px 16px 100px; }
+
+  .summary-card{ display:flex; align-items:center; gap:14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-l); padding:16px 18px; margin-bottom:16px; box-shadow:var(--shadow-card); }
+  .ring-wrap{ position:relative; flex:none; width:52px; height:52px; }
+  .ring{ position:absolute; inset:0; border-radius:50%; background:conic-gradient(var(--accent) calc(var(--pct,0)*1%), var(--surface-sunken) 0); }
+  .ring::after{ content:''; position:absolute; inset:6px; border-radius:50%; background:var(--surface); }
+  .summary-text{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--accent); }
+  .summary-copy{ flex:1; }
+  .summary-copy .headline{ font-size:15px; font-weight:600; }
+  .summary-copy .sub{ font-size:12.5px; color:var(--text-soft); margin-top:2px; }
+
+  .section-label{ font-size:12.5px; font-weight:600; color:var(--text-faint); margin:18px 2px 8px; display:flex; align-items:center; justify-content:space-between; }
+
+  .clear-list-btn{
+    display:block; width:100%; margin-top:10px; height:44px; border-radius:999px;
+    border:1.5px solid var(--border); background:var(--surface); color:var(--text-soft);
+    font-size:14px; font-weight:600; cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .clear-list-btn.all-done{ background:var(--accent-2-soft); border-color:var(--accent-2); color:var(--accent-2); }
+  .confirm-clear{ display:flex; align-items:center; gap:8px; margin-top:10px; background:var(--accent-2-soft); border:1.5px solid var(--accent-2); border-radius:var(--radius-l); padding:12px 14px; }
+  .confirm-clear span{ flex:1; font-size:13.5px; font-weight:600; color:var(--text); }
+  .confirm-clear button{ border:none; border-radius:999px; height:34px; padding:0 14px; font-size:13px; font-weight:700; cursor:pointer; }
+  .confirm-clear .yes-btn{ background:var(--accent-2); color:#fff; }
+  .confirm-clear .no-btn{ background:var(--surface); color:var(--text-soft); border:1.5px solid var(--border); }
+
+  .list-group{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-l); overflow:hidden; box-shadow:var(--shadow-card); }
+  .item-row{ display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid var(--border); transition:background .15s ease; }
+  .item-row:last-child{ border-bottom:none; }
+  .checkbox{ flex:none; width:24px; height:24px; border-radius:50%; border:2px solid var(--border); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .15s ease, border-color .15s ease; }
+  .checkbox.checked{ background:var(--accent); border-color:var(--accent); }
+  .checkbox svg{ opacity:0; transform:scale(0.5); transition:opacity .12s ease, transform .12s ease; }
+  .checkbox.checked svg{ opacity:1; transform:scale(1); }
+  .item-body{ flex:1; min-width:0; cursor:pointer; }
+  .item-name{ font-size:15px; font-weight:500; color:var(--text); }
+  .item-qty{ font-size:12.5px; color:var(--text-soft); margin-top:1px; }
+  .item-row.done .item-name{ color:var(--done); text-decoration:line-through; text-decoration-thickness:1.3px; }
+  .item-row.done .item-qty{ color:var(--done); }
+  .item-row.done .item-body{ opacity:0.75; }
+  .del-btn{ flex:none; border:none; background:none; color:var(--text-faint); width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:50%; opacity:0.6; }
+  .del-btn:active{ background:var(--surface-sunken); opacity:1; }
+
+  .empty-state{ text-align:center; padding:54px 24px 30px; color:var(--text-soft); }
+  .empty-state .emoji{ font-size:38px; margin-bottom:10px; }
+  .empty-state h2{ font-size:16.5px; font-weight:600; color:var(--text); margin:0 0 6px; }
+  .empty-state p{ font-size:13.5px; line-height:1.5; margin:0; color:var(--text-soft); }
+
+  .sync-pill{
+    position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+    max-width:448px; width:calc(100% - 32px); background:var(--text); color:var(--bg);
+    border-radius:999px; padding:9px 16px; font-size:12.5px; font-weight:500;
+    display:flex; align-items:center; gap:8px; justify-content:center;
+    box-shadow:0 6px 20px rgba(0,0,0,0.18); opacity:0; pointer-events:none;
+    transition:opacity .25s ease; z-index:40;
+  }
+  .sync-pill.show{ opacity:0.94; }
+  .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); flex:none; }
+
+  .install-banner{
+    display:none; align-items:center; gap:10px;
+    background:var(--accent-soft); border:1px solid var(--accent);
+    border-radius:var(--radius-m); padding:10px 14px; margin:0 16px 10px;
+    font-size:12.8px; color:var(--text); line-height:1.4;
+  }
+  .install-cta{
+    flex:none; border:none; border-radius:999px; height:30px; padding:0 14px;
+    background:var(--accent); color:#fff; font-size:12.5px; font-weight:700; cursor:pointer;
+  }
+  .install-dismiss{
+    flex:none; border:none; background:none; color:var(--text-soft);
+    width:24px; height:24px; cursor:pointer; font-size:13px;
+  }
+
+  /* ---------- history drawer ---------- */
+  .history-backdrop{
+    position:fixed; inset:0; background:rgba(10,14,10,0.4); z-index:48;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .history-backdrop.open{ opacity:1; pointer-events:auto; }
+  .history-drawer{
+    position:fixed; top:0; right:0; height:100dvh; width:86%; max-width:360px;
+    background:var(--surface); z-index:49; box-shadow:-8px 0 30px rgba(0,0,0,0.15);
+    transform:translateX(100%); transition:transform .25s ease;
+    display:flex; flex-direction:column;
+  }
+  .history-drawer.open{ transform:translateX(0); }
+  .history-head{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--border); }
+  .history-head h3{ margin:0; font-size:16px; font-weight:700; }
+  .history-close{ border:none; background:var(--surface-sunken); width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--text-soft); cursor:pointer; }
+  .history-body{ flex:1; overflow-y:auto; padding:6px 0; }
+  .history-row{ display:flex; align-items:baseline; gap:8px; padding:11px 18px; border-bottom:1px solid var(--border); }
+  .history-row .h-who{ font-weight:700; font-size:13.5px; color:var(--accent); flex:none; }
+  .history-row .h-action{ flex:1; font-size:13.5px; color:var(--text); min-width:0; }
+  .history-row .h-time{ font-size:11.5px; color:var(--text-faint); flex:none; }
+
+  /* ---------- setup overlay ---------- */
+  .setup-overlay{
+    position:fixed; inset:0; background:var(--bg); z-index:80;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    overflow-y:auto;
+  }
+  .setup-card{ width:100%; max-width:420px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-l); padding:24px 22px; box-shadow:var(--shadow-card); }
+  .setup-card h2{ font-size:18px; margin:0 0 6px; }
+  .setup-card p{ font-size:13.5px; color:var(--text-soft); line-height:1.6; margin:0 0 14px; }
+  .setup-steps{ background:var(--surface-sunken); border-radius:var(--radius-m); padding:14px 16px; font-size:12.8px; color:var(--text-soft); line-height:1.7; margin-bottom:16px; }
+  .setup-steps b{ color:var(--text); }
+  .setup-card textarea{
+    width:100%; min-height:110px; border:1.5px solid var(--border); border-radius:var(--radius-s);
+    padding:10px 12px; font-size:12.5px; font-family:monospace; resize:vertical; outline:none; color:var(--text); background:var(--surface);
+  }
+  .setup-card textarea:focus, .setup-card input:focus{ border-color:var(--accent); }
+  .setup-card input[type=text]{
+    width:100%; height:46px; border:1.5px solid var(--border); border-radius:999px;
+    padding:0 16px; font-size:15px; outline:none; color:var(--text); background:var(--surface);
+  }
+  .setup-primary-btn{
+    margin-top:14px; width:100%; height:46px; border:none; border-radius:999px;
+    background:var(--accent); color:#fff; font-size:14.5px; font-weight:700; cursor:pointer;
+  }
+  .setup-primary-btn:disabled{ opacity:0.5; }
+  .setup-error{ margin-top:10px; font-size:12.5px; color:#C0392B; }
+  .setup-link{ color:var(--accent); text-decoration:underline; }
+  .setup-secondary{
+    margin-top:10px; width:100%; height:38px; border:none; background:none;
+    color:var(--text-faint); font-size:12.5px; cursor:pointer; text-decoration:underline;
+  }
+
+  ::-webkit-scrollbar{ width:0; height:0; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top" id="topHeader">
+    <div class="title-row">
+      <h1>오늘 뭐 사지</h1>
+      <div class="right-meta">
+        <span class="sub" id="dateLabel"></span>
+        <button class="history-btn" id="historyBtn" aria-label="활동 기록" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+          <span class="dotnew" id="historyDot"></span>
+        </button>
+      </div>
+    </div>
+    <div class="search-row">
+      <div class="search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="catalogInput" type="text" placeholder="식재료 검색 (예: 새우, shrimp)" autocomplete="off">
+        <button class="clear-btn" id="clearCatalogBtn" style="display:none;" aria-label="지우기">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <button class="icon-btn" id="listSearchToggle" style="display:none;" aria-label="리스트 안에서 검색">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </div>
+    <div class="list-search-panel" id="listSearchPanel">
+      <input id="listSearchInput" type="text" placeholder="오늘 리스트에서 검색" autocomplete="off">
+    </div>
+    <div class="catalog-panel" id="catalogPanel" style="display:none;"></div>
+  </header>
+
+  <div class="install-banner" id="installBanner"></div>
+
+  <main id="mainContent"></main>
+
+  <div class="sync-pill" id="syncPill"><span class="dot"></span><span id="syncPillText">실시간으로 연결됨</span></div>
+</div>
+
+<div class="history-backdrop" id="historyBackdrop"></div>
+<div class="history-drawer" id="historyDrawer">
+  <div class="history-head">
+    <h3>활동 기록</h3>
+    <button class="history-close" id="historyCloseBtn" aria-label="닫기">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="history-body" id="historyList"></div>
+</div>
+
+<div class="setup-overlay" id="setupOverlay" style="display:none;"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(e){ console.error('sw register failed', e); });
+    });
+  }
+
+
+  /* ================= catalog ================= */
+  var CATALOG = [
+    {ko:"쌀", en:"rice", u:"kg"},{ko:"안남미", en:"jasmine rice", u:"kg"},{ko:"찹쌀", en:"sweet rice", u:"kg"},
+    {ko:"현미", en:"brown rice", u:"kg"},{ko:"잡곡", en:"mixed grains", u:"kg"},{ko:"키친타월", en:"paper towel", u:"개"},
+    {ko:"휴지", en:"toilet paper", u:"개"},{ko:"물티슈", en:"wet wipes", u:"개"},{ko:"계란", en:"eggs", u:"개"},
+    {ko:"메추리알", en:"quail eggs", u:"개"},{ko:"김치", en:"kimchi", u:"개"},{ko:"배추김치", en:"napa cabbage kimchi", u:"개"},
+    {ko:"깍두기", en:"radish kimchi", u:"개"},{ko:"총각김치", en:"ponytail radish kimchi", u:"개"},{ko:"열무김치", en:"young radish kimchi", u:"개"},
+    {ko:"파", en:"green onion", u:"개"},{ko:"대파", en:"green onion (large)", u:"개"},{ko:"쪽파", en:"scallion", u:"개"},
+    {ko:"무", en:"radish", u:"개"},{ko:"무말랭이", en:"dried radish", u:"g"},{ko:"오이", en:"cucumber", u:"개"},
+    {ko:"바나나", en:"banana", u:"개"},{ko:"얼린 망고", en:"frozen mango", u:"g"},{ko:"망고", en:"mango", u:"개"},
+    {ko:"바닐라 프로틴", en:"vanilla protein powder", u:"개"},{ko:"초코 프로틴", en:"chocolate protein powder", u:"개"},
+    {ko:"그릭 요거트", en:"greek yogurt", u:"개"},{ko:"요거트", en:"yogurt", u:"개"},{ko:"빨래세제", en:"laundry detergent", u:"개"},
+    {ko:"섬유유연제", en:"fabric softener", u:"개"},{ko:"주방세제", en:"dish soap", u:"개"},{ko:"부침가루", en:"pancake mix (savory)", u:"g"},
+    {ko:"튀김가루", en:"frying flour", u:"g"},{ko:"밀가루", en:"flour", u:"g"},{ko:"빵가루", en:"bread crumbs", u:"g"},
+    {ko:"만두", en:"dumplings", u:"개"},{ko:"물만두", en:"boiled dumplings", u:"개"},{ko:"군만두", en:"fried dumplings", u:"개"},
+    {ko:"식초", en:"vinegar", u:"개"},{ko:"현미식초", en:"brown rice vinegar", u:"개"},{ko:"다시마", en:"dried kelp", u:"g"},
+    {ko:"멸치", en:"dried anchovy", u:"g"},{ko:"순두부", en:"soft tofu", u:"개"},{ko:"두부", en:"tofu", u:"개"},
+    {ko:"콩비지", en:"soybean pulp", u:"개"},{ko:"깻잎", en:"perilla leaves", u:"개"},{ko:"들깨가루", en:"ground perilla seed", u:"g"},
+    {ko:"들기름", en:"perilla oil", u:"개"},{ko:"배추 작은거", en:"napa cabbage (small)", u:"개"},{ko:"배추", en:"napa cabbage", u:"개"},
+    {ko:"양배추", en:"cabbage", u:"개"},{ko:"할라피뇨", en:"jalapeño", u:"개"},{ko:"청양고추", en:"cheongyang chili", u:"g"},
+    {ko:"고추", en:"chili pepper", u:"g"},{ko:"피망", en:"bell pepper", u:"개"},{ko:"파프리카", en:"paprika (bell pepper)", u:"개"},
+    {ko:"양파", en:"onion", u:"개"},{ko:"마늘", en:"garlic", u:"g"},{ko:"간마늘", en:"minced garlic", u:"g"},
+    {ko:"다진마늘", en:"minced garlic", u:"g"},{ko:"생강", en:"ginger", u:"g"},{ko:"와사비", en:"wasabi", u:"개"},
+    {ko:"연겨자", en:"mustard (yellow, korean)", u:"개"},{ko:"홀그레인 머스타드", en:"whole grain mustard", u:"개"},
+    {ko:"보리차", en:"barley tea", u:"개"},{ko:"옥수수수염차", en:"corn silk tea", u:"개"},{ko:"녹차", en:"green tea", u:"개"},
+    {ko:"간 돼지고기", en:"ground pork", u:"g"},{ko:"간 소고기", en:"ground beef", u:"g"},{ko:"Beef brisket", en:"소 양지", u:"kg"},
+    {ko:"Beef shank", en:"소 사태", u:"kg"},{ko:"고춧가루", en:"red pepper flakes", u:"g"},{ko:"Tenderloin", en:"안심", u:"kg"},
+    {ko:"프로수토", en:"prosciutto", u:"g"},{ko:"살라미", en:"salami", u:"g"},{ko:"생지", en:"pizza dough", u:"개"},
+    {ko:"버섯", en:"mushroom", u:"개"},{ko:"표고버섯", en:"shiitake mushroom", u:"개"},{ko:"새송이버섯", en:"king oyster mushroom", u:"개"},
+    {ko:"양송이버섯", en:"button mushroom", u:"개"},{ko:"팽이버섯", en:"enoki mushroom", u:"개"},{ko:"감자", en:"potato", u:"개"},
+    {ko:"고구마", en:"sweet potato", u:"개"},{ko:"당근", en:"carrot", u:"개"},{ko:"아스파라거스", en:"asparagus", u:"g"},
+    {ko:"브로콜리", en:"broccoli", u:"개"},{ko:"애호박", en:"zucchini (korean)", u:"개"},{ko:"가지", en:"eggplant", u:"개"},
+    {ko:"시금치", en:"spinach", u:"g"},{ko:"참기름", en:"sesame oil", u:"개"},{ko:"올리브유", en:"olive oil", u:"개"},
+    {ko:"카놀라유", en:"canola oil", u:"개"},{ko:"식용유", en:"cooking oil", u:"개"},{ko:"버터", en:"butter", u:"개"},
+    {ko:"생크림", en:"heavy cream", u:"개"},{ko:"우유", en:"milk", u:"개"},{ko:"두유", en:"soy milk", u:"개"},
+    {ko:"치즈", en:"cheese", u:"개"},{ko:"커피필터", en:"coffee filter", u:"개"},{ko:"원두", en:"coffee beans", u:"g"},
+    {ko:"인스턴트커피", en:"instant coffee", u:"개"},{ko:"메밀면", en:"buckwheat noodles", u:"개"},{ko:"우동면", en:"udon noodles", u:"개"},
+    {ko:"칼국수면", en:"kalguksu noodles", u:"개"},{ko:"소면", en:"somyeon noodles", u:"g"},{ko:"당면", en:"glass noodles", u:"g"},
+    {ko:"라면", en:"ramen", u:"개"},{ko:"신라면", en:"shin ramyun", u:"개"},{ko:"불닭볶음면", en:"buldak fire noodles", u:"개"},
+    {ko:"떡국떡", en:"rice cakes for tteokguk", u:"g"},{ko:"떡볶이떡", en:"rice cakes for tteokbokki", u:"g"},
+    {ko:"스테이크 고기", en:"steak", u:"g"},{ko:"닭허벅지 살", en:"chicken thigh", u:"g"},{ko:"닭가슴살", en:"chicken breast", u:"g"},
+    {ko:"닭날개", en:"chicken wings", u:"g"},{ko:"닭볶음탕용", en:"chicken for dakbokkeumtang", u:"g"},{ko:"돼지 안심", en:"pork tenderloin", u:"g"},
+    {ko:"목살", en:"pork neck / collar", u:"g"},{ko:"삼겹살", en:"pork belly", u:"g"},{ko:"앞다리살", en:"pork shoulder", u:"g"},
+    {ko:"베이컨", en:"bacon", u:"g"},{ko:"소시지", en:"sausage", u:"개"},{ko:"스팸", en:"spam", u:"개"},{ko:"햄", en:"ham", u:"g"},
+    {ko:"사워크림", en:"sour cream", u:"개"},{ko:"과카몰리", en:"guacamole", u:"개"},{ko:"아보카도", en:"avocado", u:"개"},
+    {ko:"상추", en:"lettuce", u:"개"},{ko:"양상추", en:"iceberg lettuce", u:"개"},{ko:"도시락 통", en:"lunch box", u:"개"},
+    {ko:"돼지등뼈", en:"pork spine bones", u:"g"},{ko:"감자탕 양념", en:"gamjatang seasoning", u:"개"},{ko:"뭉크프룻", en:"monk fruit sweetener", u:"개"},
+    {ko:"카레가루", en:"curry powder", u:"개"},{ko:"후추", en:"black pepper", u:"개"},{ko:"방어", en:"yellowtail (buri)", u:"g"},
+    {ko:"방어 뱃살", en:"yellowtail belly", u:"g"},{ko:"연어", en:"salmon", u:"g"},{ko:"고등어", en:"mackerel", u:"개"},
+    {ko:"갈치", en:"beltfish (hairtail)", u:"개"},{ko:"삼치", en:"spanish mackerel", u:"개"},{ko:"매운탕거리", en:"spicy fish stew mix", u:"g"},
+    {ko:"바지락 조개", en:"clams (bajirak)", u:"g"},{ko:"홍합", en:"mussels", u:"g"},{ko:"새우", en:"shrimp", u:"g"},
+    {ko:"건새우", en:"dried shrimp", u:"g"},{ko:"칵테일새우", en:"cocktail shrimp", u:"g"},{ko:"새우깡", en:"shrimp crackers (snack)", u:"개"},
+    {ko:"새우젓", en:"salted shrimp", u:"g"},{ko:"오징어", en:"squid", u:"개"},{ko:"낙지", en:"long arm octopus", u:"개"},
+    {ko:"문어", en:"octopus", u:"g"},{ko:"참치캔", en:"canned tuna", u:"개"},{ko:"어묵", en:"fish cake", u:"개"},
+    {ko:"두부어묵", en:"tofu fish cake", u:"개"},{ko:"맛살", en:"crab stick", u:"개"},{ko:"유부", en:"fried tofu pouch", u:"개"},
+    {ko:"와이트 와인", en:"white wine", u:"개"},{ko:"미나리", en:"water dropwort (minari)", u:"g"},{ko:"콩나물", en:"soybean sprouts", u:"g"},
+    {ko:"숙주나물", en:"mung bean sprouts", u:"g"},{ko:"곤이, 이리", en:"fish roe & milt", u:"g"},{ko:"파슬리", en:"parsley", u:"개"},
+    {ko:"바질", en:"basil", u:"개"},{ko:"고수", en:"cilantro", u:"개"},{ko:"방울토마토", en:"cherry tomato", u:"g"},
+    {ko:"토마토", en:"tomato", u:"개"},{ko:"쑥갓", en:"crown daisy", u:"g"},{ko:"호두", en:"walnut", u:"g"},
+    {ko:"아몬드", en:"almond", u:"g"},{ko:"캐슈넛", en:"cashew", u:"g"},{ko:"땅콩", en:"peanut", u:"g"},
+    {ko:"우스터 소스", en:"worcestershire sauce", u:"개"},{ko:"진간장", en:"soy sauce (jin)", u:"개"},{ko:"국간장", en:"soy sauce (guk)", u:"개"},
+    {ko:"고추장", en:"gochujang", u:"개"},{ko:"된장", en:"doenjang", u:"개"},{ko:"쌈장", en:"ssamjang", u:"개"},
+    {ko:"굴소스", en:"oyster sauce", u:"개"},{ko:"멸치액젓", en:"anchovy fish sauce", u:"개"},{ko:"까나리액젓", en:"sandlance fish sauce", u:"개"},
+    {ko:"미림", en:"mirin", u:"개"},{ko:"맛술", en:"cooking rice wine", u:"개"},{ko:"다시다", en:"beef/anchovy stock powder", u:"개"},
+    {ko:"설탕", en:"sugar", u:"g"},{ko:"소금", en:"salt", u:"g"},{ko:"집락 중간사이즈", en:"ziploc bag (medium)", u:"개"},
+    {ko:"지퍼백", en:"ziploc bag", u:"개"},{ko:"호일", en:"aluminum foil", u:"개"},{ko:"랩", en:"plastic wrap", u:"개"},
+    {ko:"쓰레기봉투", en:"trash bag", u:"개"},{ko:"족발 고기", en:"jokbal (pig trotter meat)", u:"g"},{ko:"샴푸", en:"shampoo", u:"개"},
+    {ko:"바디워시", en:"body wash", u:"개"},{ko:"치약", en:"toothpaste", u:"개"},{ko:"칫솔", en:"toothbrush", u:"개"},
+    {ko:"사과", en:"apple", u:"개"},{ko:"배", en:"pear", u:"개"},{ko:"포도", en:"grapes", u:"g"},{ko:"딸기", en:"strawberry", u:"g"},
+    {ko:"수박", en:"watermelon", u:"개"},{ko:"참외", en:"korean melon", u:"개"},{ko:"복숭아", en:"peach", u:"개"},
+    {ko:"귤", en:"mandarin orange", u:"개"},{ko:"레몬", en:"lemon", u:"개"},{ko:"라임", en:"lime", u:"개"},
+    {ko:"파인애플", en:"pineapple", u:"개"},{ko:"부추", en:"garlic chives", u:"g"},{ko:"깻잎순", en:"perilla shoots", u:"g"},
+    {ko:"미역", en:"dried seaweed (for soup)", u:"g"},{ko:"김", en:"seaweed (gim)", u:"개"}
+  ];
+  var UNITS = ["개","g","kg","lb"];
+
+  var SEED_ITEMS = [
+    ["쌀",1,"kg",true],["안남미",1,"kg",true],["키친타월",1,"개",true],["휴지",1,"개",true],
+    ["계란",1,"개",true],["김치",1,"개",true],["파",1,"개",true],["대파",1,"개",true],
+    ["무",1,"개",true],["오이",1,"개",true],["바나나",1,"개",true],["얼린 망고",1,"g",true],
+    ["바닐라 프로틴",1,"개",true],["그릭 요거트",1,"개",true],["빨래세제",1,"개",true],
+    ["부침가루",1,"g",true],["만두",1,"개",true],["식초",1,"개",true],["다시마",1,"g",true],
+    ["순두부",1,"개",true],["깻잎",1,"개",true],["배추 작은거",1,"개",true],["할라피뇨",1,"개",true],
+    ["양파",1,"개",true],["두부",1,"개",true],["들깨가루",1,"g",true],["물티슈",1,"개",true],
+    ["와사비",1,"개",true],["보리차",1,"개",true],["간마늘",1,"g",true],["간 돼지고기",1,"g",true],
+    ["간 소고기",1,"g",true],["Beef brisket",1,"kg",true],["Beef shank",1,"kg",true],
+    ["고춧가루",1,"g",true],["Tenderloin",1,"kg",true],["프로수토",1,"g",true],["생지",1,"개",true],
+    ["버섯",1,"개",true],["감자",1,"개",true],["당근",1,"개",false],["아스파라거스",1,"g",true],
+    ["홀그레인 머스타드",1,"개",true],["참기름",1,"개",false],["버터",1,"개",true],
+    ["커피필터",1,"개",true],["메밀면",1,"개",true],["올리브유",1,"개",true],
+    ["스테이크 고기",1,"g",true],["닭허벅지 살",1,"g",true],["돼지 안심",1,"g",true],
+    ["목살",1,"g",true],["사워크림",1,"개",true],["과카몰리",1,"개",true],["상추",1,"개",true],
+    ["도시락 통",1,"개",true],["돼지등뼈",1,"g",true],["감자탕 양념",1,"개",true],
+    ["뭉크프룻",1,"개",true],["카레가루",1,"개",true],["후추",1,"개",true],["쪽파",1,"개",true],
+    ["방어 (뱃살)",1,"g",true],["매운탕거리",1,"g",true],["바지락 조개",1,"g",true],
+    ["와이트 와인",1,"개",true],["미나리",1,"g",true],["콩나물",1,"g",true],
+    ["곤이, 이리",1,"g",true],["파슬리",1,"개",true],["바질",1,"개",true],
+    ["방울토마토",1,"g",false],["쑥갓",1,"g",true],["우동면",1,"개",true],["당면",1,"g",true],
+    ["호두",1,"g",false],["연겨자",1,"개",true],["두부어묵",1,"개",true],["유부",1,"개",true],
+    ["우스터 소스",1,"개",true],["진간장",1,"개",true],["생강",1,"g",true],
+    ["집락 중간사이즈",1,"개",true],["족발 고기",1,"g",false]
+  ];
+
+  var FB_APP_URL = "https://cdnjs.cloudflare.com/ajax/libs/firebase/12.3.0/firebase-app-compat.min.js";
+  var FB_FIRESTORE_URL = "https://cdnjs.cloudflare.com/ajax/libs/firebase/12.3.0/firebase-firestore-compat.min.js";
+  var LS_CONFIG_KEY = "sg_fbconfig_v1";
+  var LS_NAME_KEY = "sg_username_v1";
+
+  /* ================= state ================= */
+  var fbConfig = null;
+  var userName = "";
+  var fbStore = null;
+  var items = [];
+  var historyEntries = [];
+  var catalogQuery = "";
+  var listSearchOpen = false;
+  var listSearchQuery = "";
+  var pendingAdd = null;
+  var pendingQty = 1;
+  var pendingUnit = "개";
+  var clearConfirmOpen = false;
+  var historyOpen = false;
+  var lastSeenHistoryAt = 0;
+
+  var el = {
+    catalogInput: document.getElementById('catalogInput'),
+    clearCatalogBtn: document.getElementById('clearCatalogBtn'),
+    catalogPanel: document.getElementById('catalogPanel'),
+    listSearchToggle: document.getElementById('listSearchToggle'),
+    listSearchPanel: document.getElementById('listSearchPanel'),
+    listSearchInput: document.getElementById('listSearchInput'),
+    main: document.getElementById('mainContent'),
+    topHeader: document.getElementById('topHeader'),
+    dateLabel: document.getElementById('dateLabel'),
+    syncPill: document.getElementById('syncPill'),
+    syncPillText: document.getElementById('syncPillText'),
+    historyBtn: document.getElementById('historyBtn'),
+    historyDot: document.getElementById('historyDot'),
+    historyDrawer: document.getElementById('historyDrawer'),
+    historyBackdrop: document.getElementById('historyBackdrop'),
+    historyCloseBtn: document.getElementById('historyCloseBtn'),
+    historyList: document.getElementById('historyList'),
+    setupOverlay: document.getElementById('setupOverlay')
+  };
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function norm(s){ return (s||"").toLowerCase().trim(); }
+  function todayLabel(){
+    var d = new Date(); var days = ["일","월","화","수","목","금","토"];
+    return (d.getMonth()+1) + "월 " + d.getDate() + "일 (" + days[d.getDay()] + ")";
+  }
+  el.dateLabel.textContent = todayLabel();
+
+  /* ================= catalog search / add ================= */
+  function searchCatalog(q){
+    var nq = norm(q); if(!nq) return [];
+    return CATALOG.filter(function(it){
+      return norm(it.ko).indexOf(nq) !== -1 || norm(it.en).indexOf(nq) !== -1;
+    }).slice(0, 24);
+  }
+
+  function renderCatalogPanel(){
+    var q = catalogQuery.trim();
+    el.clearCatalogBtn.style.display = q ? 'flex' : 'none';
+    if(pendingAdd){ renderQtySheetOnly(); return; }
+    if(!q){ el.catalogPanel.style.display = 'none'; el.catalogPanel.innerHTML = ''; return; }
+
+    var results = searchCatalog(q);
+    var html = '<div class="catalog-list">';
+    if(results.length === 0){
+      html += '<div class="empty-search">일치하는 식재료가 없어요</div>';
+    } else {
+      results.forEach(function(it){
+        html += '<div class="catalog-row"><div class="names"><div class="name-ko">' + escapeHtml(it.ko) + '</div>' +
+          '<div class="name-en">' + escapeHtml(it.en) + '</div></div>' +
+          '<button class="plus-btn" data-add="' + escapeHtml(it.ko) + '" data-unit="' + escapeHtml(it.u||'개') + '" aria-label="추가">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+          '</button></div>';
+      });
+    }
+    html += '</div>';
+    html += '<button class="add-custom-btn" id="customAddBtn">' +
+      '<span class="plus-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>' +
+      '<span class="txt">목록에 없나요? <b>"' + escapeHtml(q) + '"</b> 직접 추가하기</span></button>';
+
+    el.catalogPanel.innerHTML = html;
+    el.catalogPanel.style.display = 'block';
+
+    el.catalogPanel.querySelectorAll('[data-add]').forEach(function(btn){
+      btn.addEventListener('click', function(){ openQtySheet(btn.getAttribute('data-add'), false, btn.getAttribute('data-unit')); });
+    });
+    var customBtn = document.getElementById('customAddBtn');
+    if(customBtn){ customBtn.addEventListener('click', function(){ openQtySheet(q, true, "개"); }); }
+  }
+
+  function openQtySheet(name, custom, unit){
+    pendingAdd = { name: name, custom: custom };
+    pendingQty = 1; pendingUnit = unit || "개";
+    renderCatalogPanel();
+  }
+
+  function renderQtySheetOnly(){
+    var html = '<div class="catalog-row" style="border-bottom:1px solid var(--border);">' +
+      '<div class="names"><div class="name-ko">' + escapeHtml(pendingAdd.name) + '</div>' +
+      (pendingAdd.custom ? '<div class="name-en">직접 추가</div>' : '') + '</div>' +
+      '<button class="plus-btn rotate" id="cancelQtyBtn" aria-label="취소">' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+      '</button></div>';
+
+    html += '<div class="qty-sheet"><div class="row1">' +
+      '<div class="qty-stepper"><button id="qtyMinus" aria-label="빼기">−</button>' +
+      '<input id="qtyInput" type="number" min="0" step="0.1" value="' + pendingQty + '">' +
+      '<button id="qtyPlus" aria-label="더하기">+</button></div>' +
+      '<div class="unit-chips" id="unitChips">' +
+      UNITS.map(function(u){ return '<div class="unit-chip' + (u===pendingUnit ? ' sel' : '') + '" data-unit="' + u + '">' + u + '</div>'; }).join('') +
+      '</div></div>' +
+      '<div class="row2"><button class="cancel-add-btn" id="cancelQtyBtn2">취소</button>' +
+      '<button class="confirm-add-btn" id="confirmAddBtn">리스트에 추가</button></div></div>';
+
+    el.catalogPanel.innerHTML = html;
+    el.catalogPanel.style.display = 'block';
+
+    function closeSheet(){ pendingAdd = null; renderCatalogPanel(); }
+    document.getElementById('cancelQtyBtn').addEventListener('click', closeSheet);
+    document.getElementById('cancelQtyBtn2').addEventListener('click', closeSheet);
+
+    var qtyInput = document.getElementById('qtyInput');
+    document.getElementById('qtyMinus').addEventListener('click', function(){
+      var v = Math.max(0, (parseFloat(qtyInput.value)||0) - 1); qtyInput.value = v; pendingQty = v;
+    });
+    document.getElementById('qtyPlus').addEventListener('click', function(){
+      var v = (parseFloat(qtyInput.value)||0) + 1; qtyInput.value = v; pendingQty = v;
+    });
+    qtyInput.addEventListener('input', function(){ pendingQty = parseFloat(qtyInput.value)||0; });
+
+    document.getElementById('unitChips').querySelectorAll('.unit-chip').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        pendingUnit = chip.getAttribute('data-unit');
+        document.getElementById('unitChips').querySelectorAll('.unit-chip').forEach(function(c){ c.classList.remove('sel'); });
+        chip.classList.add('sel');
+      });
+    });
+    document.getElementById('confirmAddBtn').addEventListener('click', confirmAdd);
+  }
+
+  function confirmAdd(){
+    if(!pendingAdd) return;
+    var name = pendingAdd.name, qty = pendingQty > 0 ? pendingQty : 1, unit = pendingUnit;
+    addItemToList(name, qty, unit);
+    pendingAdd = null; catalogQuery = ""; el.catalogInput.value = "";
+    renderCatalogPanel();
+  }
+
+  /* ================= firestore-backed data ops ================= */
+  function addItemToList(name, qty, unit){
+    if(!fbStore) return;
+    fbStore.collection('items').add({ name:name, qty:qty, unit:unit, checked:false, addedAt:Date.now(), addedBy:userName })
+      .then(function(){ logHistory('add', name); })
+      .catch(function(e){ console.error('add failed', e); flashPill('추가 실패 — 연결을 확인해주세요'); });
+  }
+  function toggleItem(item){
+    if(!fbStore) return;
+    var next = !item.checked;
+    fbStore.collection('items').doc(item.id).update({ checked: next })
+      .then(function(){ logHistory(next ? 'check' : 'uncheck', item.name); })
+      .catch(function(e){ console.error(e); });
+  }
+  function deleteItem(item){
+    if(!fbStore) return;
+    fbStore.collection('items').doc(item.id).delete()
+      .then(function(){ logHistory('delete', item.name); })
+      .catch(function(e){ console.error(e); });
+  }
+  function clearList(){
+    if(!fbStore) return;
+    var toDelete = items.slice(); var count = toDelete.length;
+    Promise.all(toDelete.map(function(it){ return fbStore.collection('items').doc(it.id).delete(); }))
+      .then(function(){ logHistory('clear', null, count); flashPill('오늘 장보기 완료! 리스트를 비웠어요'); })
+      .catch(function(e){ console.error('clear failed', e); });
+  }
+  function logHistory(type, itemName, count){
+    if(!fbStore) return;
+    fbStore.collection('history').add({ type:type, item:itemName||null, count:count||null, who:userName, at:Date.now() })
+      .catch(function(e){ console.error('history log failed', e); });
+  }
+
+  /* ================= main render ================= */
+  function renderMain(){
+    var visibleItems = items;
+    if(listSearchOpen && listSearchQuery.trim()){
+      var nq = norm(listSearchQuery);
+      visibleItems = items.filter(function(it){ return norm(it.name).indexOf(nq) !== -1; });
+    }
+    el.listSearchToggle.style.display = items.length > 0 ? 'flex' : 'none';
+
+    if(items.length === 0){
+      el.main.innerHTML = '<div class="empty-state"><div class="emoji">🧺</div>' +
+        '<h2>아직 오늘 살 게 없어요</h2>' +
+        '<p>위 검색창에서 식재료를 찾아<br>오늘의 장보기 리스트를 만들어보세요.</p></div>';
+      return;
+    }
+
+    var doneCount = items.filter(function(i){ return i.checked; }).length;
+    var pct = items.length ? Math.round((doneCount/items.length)*100) : 0;
+    var allDone = doneCount === items.length;
+
+    var html = '<div class="summary-card">' +
+      '<div class="ring-wrap"><div class="ring" style="--pct:' + pct + '"></div>' +
+      '<div class="summary-text">' + pct + '%</div></div>' +
+      '<div class="summary-copy"><div class="headline">' + doneCount + ' / ' + items.length + ' 완료</div>' +
+      '<div class="sub">' + (allDone ? '오늘 장보기 끝!' : (items.length - doneCount) + '개 더 사야 해요') + '</div></div></div>';
+
+    if(clearConfirmOpen){
+      html += '<div class="confirm-clear"><span>리스트를 전부 비울까요?</span>' +
+        '<button class="no-btn" id="clearNoBtn">취소</button>' +
+        '<button class="yes-btn" id="clearYesBtn">비우기</button></div>';
+    } else {
+      html += '<button class="clear-list-btn' + (allDone ? ' all-done' : '') + '" id="clearListBtn">' +
+        (allDone ? '장보기 완료 · 리스트 비우기' : '장보기 완료로 표시하고 비우기') + '</button>';
+    }
+
+    html += '<div class="section-label"><span>오늘의 장보기 리스트</span></div>';
+
+    if(visibleItems.length === 0){
+      html += '<div class="empty-search" style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-m);">검색 결과가 없어요</div>';
+    } else {
+      html += '<div class="list-group">';
+      visibleItems.forEach(function(item){
+        html += '<div class="item-row' + (item.checked ? ' done' : '') + '" data-id="' + item.id + '">' +
+          '<div class="checkbox' + (item.checked ? ' checked' : '') + '" data-toggle="' + item.id + '">' +
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>' +
+          '<div class="item-body" data-toggle="' + item.id + '">' +
+          '<div class="item-name">' + escapeHtml(item.name) + '</div>' +
+          '<div class="item-qty">' + formatQty(item.qty) + item.unit + '</div></div>' +
+          '<button class="del-btn" data-del="' + item.id + '" aria-label="삭제">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div>';
+      });
+      html += '</div>';
+    }
+
+    el.main.innerHTML = html;
+
+    el.main.querySelectorAll('[data-toggle]').forEach(function(node){
+      node.addEventListener('click', function(){
+        var item = items.find(function(i){ return i.id === node.getAttribute('data-toggle'); });
+        if(item) toggleItem(item);
+      });
+    });
+    el.main.querySelectorAll('[data-del]').forEach(function(node){
+      node.addEventListener('click', function(e){
+        e.stopPropagation();
+        var item = items.find(function(i){ return i.id === node.getAttribute('data-del'); });
+        if(item) deleteItem(item);
+      });
+    });
+    var clearBtn = document.getElementById('clearListBtn');
+    if(clearBtn) clearBtn.addEventListener('click', function(){ clearConfirmOpen = true; renderMain(); });
+    var clearNoBtn = document.getElementById('clearNoBtn');
+    if(clearNoBtn) clearNoBtn.addEventListener('click', function(){ clearConfirmOpen = false; renderMain(); });
+    var clearYesBtn = document.getElementById('clearYesBtn');
+    if(clearYesBtn) clearYesBtn.addEventListener('click', function(){ clearConfirmOpen = false; clearList(); });
+  }
+
+  function formatQty(q){
+    if(q === null || q === undefined) return "";
+    var n = Number(q);
+    return (Number.isInteger(n) ? n : n) + " ";
+  }
+
+  /* ================= history panel ================= */
+  function relTime(ts){
+    var diff = Date.now() - ts, m = Math.floor(diff/60000);
+    if(m < 1) return '방금 전';
+    if(m < 60) return m + '분 전';
+    var hr = Math.floor(m/60);
+    if(hr < 24) return hr + '시간 전';
+    return Math.floor(hr/24) + '일 전';
+  }
+  function actionText(h){
+    switch(h.type){
+      case 'add': return escapeHtml(h.item) + ' 추가함';
+      case 'check': return escapeHtml(h.item) + ' 체크함';
+      case 'uncheck': return escapeHtml(h.item) + ' 체크 해제함';
+      case 'delete': return escapeHtml(h.item) + ' 삭제함';
+      case 'clear': return '리스트 ' + (h.count||0) + '개 비움';
+      default: return '';
+    }
+  }
+  function renderHistory(){
+    if(historyEntries.length === 0){
+      el.historyList.innerHTML = '<div class="empty-search">아직 기록이 없어요</div>';
+      return;
+    }
+    el.historyList.innerHTML = historyEntries.map(function(h){
+      return '<div class="history-row"><span class="h-who">' + escapeHtml(h.who || '누군가') + '</span>' +
+        '<span class="h-action">' + actionText(h) + '</span>' +
+        '<span class="h-time">' + relTime(h.at) + '</span></div>';
+    }).join('');
+    if(!historyOpen && historyEntries[0] && historyEntries[0].at > lastSeenHistoryAt){
+      el.historyBtn.classList.add('has-new');
+    }
+  }
+
+  el.historyBtn.addEventListener('click', function(){
+    historyOpen = true;
+    el.historyDrawer.classList.add('open');
+    el.historyBackdrop.classList.add('open');
+    el.historyBtn.classList.remove('has-new');
+    if(historyEntries[0]) lastSeenHistoryAt = historyEntries[0].at;
+  });
+  function closeHistory(){
+    historyOpen = false;
+    el.historyDrawer.classList.remove('open');
+    el.historyBackdrop.classList.remove('open');
+  }
+  el.historyCloseBtn.addEventListener('click', closeHistory);
+  el.historyBackdrop.addEventListener('click', closeHistory);
+
+  /* ================= sync pill ================= */
+  var pillTimer = null;
+  function flashPill(text){
+    el.syncPillText.textContent = text;
+    el.syncPill.classList.add('show');
+    if(pillTimer) clearTimeout(pillTimer);
+    pillTimer = setTimeout(function(){ el.syncPill.classList.remove('show'); }, 2200);
+  }
+
+  /* ================= install banner (PWA) ================= */
+  var deferredPrompt = null;
+  var INSTALL_DISMISS_KEY = 'sg_install_dismissed_v1';
+
+  function isIos(){ return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream; }
+  function isStandaloneMode(){
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+  function hideInstallBanner(){ document.getElementById('installBanner').style.display = 'none'; }
+  function showInstallBanner(kind){
+    if(localStorage.getItem(INSTALL_DISMISS_KEY) || isStandaloneMode()) return;
+    var b = document.getElementById('installBanner');
+    if(kind === 'android-auto'){
+      b.innerHTML = '<span style="flex:1;">홈 화면에 설치하면 앱처럼 바로 쓸 수 있어요</span>' +
+        '<button class="install-cta" id="installCtaBtn">설치</button>' +
+        '<button class="install-dismiss" id="installDismissBtn" aria-label="닫기">✕</button>';
+      var cta = document.getElementById('installCtaBtn');
+      cta.addEventListener('click', function(){
+        if(!deferredPrompt) return;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(){ deferredPrompt = null; hideInstallBanner(); });
+      });
+    } else if(kind === 'android-manual'){
+      b.innerHTML = '<span style="flex:1;">오른쪽 위 ⋮ 메뉴 → "앱 설치"를 누르면 설치돼요</span>' +
+        '<button class="install-dismiss" id="installDismissBtn" aria-label="닫기">✕</button>';
+    } else {
+      b.innerHTML = '<span style="flex:1;">공유 버튼(⬆️) → "홈 화면에 추가"를 누르면 앱처럼 설치돼요</span>' +
+        '<button class="install-dismiss" id="installDismissBtn" aria-label="닫기">✕</button>';
+    }
+    document.getElementById('installDismissBtn').addEventListener('click', function(){
+      localStorage.setItem(INSTALL_DISMISS_KEY, '1');
+      hideInstallBanner();
+    });
+    b.style.display = 'flex';
+  }
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallBanner('android-auto');
+  });
+  window.addEventListener('appinstalled', function(){
+    localStorage.setItem(INSTALL_DISMISS_KEY, '1');
+    hideInstallBanner();
+  });
+  function maybeShowIosHint(){
+    if(isIos() && !isStandaloneMode()){ showInstallBanner('ios'); return; }
+    if(!isIos() && !isStandaloneMode() && !deferredPrompt){ showInstallBanner('android-manual'); }
+  }
+
+  /* ================= header events ================= */
+  el.catalogInput.addEventListener('input', function(){ catalogQuery = el.catalogInput.value; pendingAdd = null; renderCatalogPanel(); });
+  el.catalogInput.addEventListener('focus', function(){ if(catalogQuery.trim()) renderCatalogPanel(); });
+  el.clearCatalogBtn.addEventListener('click', function(){
+    catalogQuery = ""; el.catalogInput.value = ""; pendingAdd = null; renderCatalogPanel(); el.catalogInput.focus();
+  });
+  document.addEventListener('click', function(e){
+    if(!el.catalogPanel.contains(e.target) && e.target !== el.catalogInput && !el.catalogInput.contains(e.target)){
+      if(!pendingAdd) el.catalogPanel.style.display = 'none';
+    }
+  });
+  el.catalogInput.addEventListener('click', function(e){ e.stopPropagation(); });
+  el.catalogPanel.addEventListener('click', function(e){ e.stopPropagation(); });
+
+  el.listSearchToggle.addEventListener('click', function(){
+    listSearchOpen = !listSearchOpen;
+    el.listSearchToggle.classList.toggle('active', listSearchOpen);
+    el.listSearchPanel.classList.toggle('open', listSearchOpen);
+    if(listSearchOpen){ setTimeout(function(){ el.listSearchInput.focus(); }, 80); }
+    else { listSearchQuery = ""; el.listSearchInput.value = ""; renderMain(); }
+  });
+  el.listSearchInput.addEventListener('input', function(){ listSearchQuery = el.listSearchInput.value; renderMain(); });
+
+  window.addEventListener('scroll', function(){ el.topHeader.classList.toggle('scrolled', window.scrollY > 4); });
+
+  /* ================= firestore bootstrap ================= */
+  function subscribeItems(){
+    fbStore.collection('items').orderBy('addedAt','asc').onSnapshot(function(snap){
+      items = snap.docs.map(function(d){
+        var v = d.data();
+        return { id:d.id, name:v.name, qty:v.qty, unit:v.unit, checked:!!v.checked, addedAt:v.addedAt, addedBy:v.addedBy };
+      });
+      renderMain();
+      flashPill('실시간으로 업데이트됨');
+    }, function(err){ console.error('items snapshot error', err); flashPill('연결이 끊어졌어요'); });
+  }
+  function subscribeHistory(){
+    fbStore.collection('history').orderBy('at','desc').limit(50).onSnapshot(function(snap){
+      historyEntries = snap.docs.map(function(d){ return d.data(); });
+      renderHistory();
+    }, function(err){ console.error('history snapshot error', err); });
+  }
+  function seedIfNeeded(){
+    var seedRef = fbStore.doc('meta/seed');
+    seedRef.get().then(function(doc){
+      if(doc.exists) return;
+      return seedRef.set({ done:true, at:Date.now() }).then(function(){
+        var batch = fbStore.batch();
+        SEED_ITEMS.forEach(function(row, idx){
+          var ref = fbStore.collection('items').doc();
+          batch.set(ref, { name:row[0], qty:row[1], unit:row[2], checked:row[3], addedAt:Date.now()+idx, addedBy:'초기 목록' });
+        });
+        return batch.commit();
+      });
+    }).catch(function(e){ console.error('seed error', e); });
+  }
+
+  /* ================= setup flow ================= */
+  function loadScript(src){
+    return new Promise(function(resolve, reject){
+      var s = document.createElement('script');
+      s.src = src; s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  function parseFirebaseConfigText(text){
+    var match = text.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error('no-object');
+    var obj = new Function('return (' + match[0] + ');')();
+    if(!obj || !obj.apiKey || !obj.projectId) throw new Error('missing-fields');
+    return obj;
+  }
+
+  function showConfigSetup(prefillError){
+    el.setupOverlay.style.display = 'flex';
+    el.setupOverlay.innerHTML =
+      '<div class="setup-card">' +
+      '<h2>공유 저장소 연결하기</h2>' +
+      '<p>이 리스트를 Claude 계정과 상관없이 아무 폰에서나 실시간으로 같이 쓰려면, 무료 Firebase 프로젝트 하나가 필요해요. 한 번만 만들면 돼요 (5분).</p>' +
+      '<div class="setup-steps">' +
+      '1. <a class="setup-link" href="https://console.firebase.google.com/" target="_blank" rel="noopener">firebase.google.com/console</a>에서 무료 프로젝트 생성<br>' +
+      '2. 왼쪽 메뉴 <b>Firestore Database</b> → 데이터베이스 만들기 → <b>테스트 모드</b>로 시작<br>' +
+      '3. Firestore <b>규칙(Rules)</b> 탭에서 아래로 교체 후 게시:<br>' +
+      '<code style="font-size:11px;">allow read, write: if true;</code><br>' +
+      '4. 프로젝트 설정(⚙️) → 내 앱 → <b>웹 앱 추가</b> → 나오는 <b>firebaseConfig</b> 코드 전체를 복사해서 아래에 붙여넣기' +
+      '</div>' +
+      '<textarea id="fbConfigInput" placeholder="const firebaseConfig = { apiKey: &quot;...&quot;, projectId: &quot;...&quot;, ... };"></textarea>' +
+      (prefillError ? '<div class="setup-error">' + escapeHtml(prefillError) + '</div>' : '') +
+      '<button class="setup-primary-btn" id="fbConfigSaveBtn">저장하고 계속</button>' +
+      '</div>';
+    document.getElementById('fbConfigSaveBtn').addEventListener('click', function(){
+      var raw = document.getElementById('fbConfigInput').value;
+      try{
+        var cfg = parseFirebaseConfigText(raw);
+        localStorage.setItem(LS_CONFIG_KEY, JSON.stringify(cfg));
+        fbConfig = cfg;
+        boot();
+      }catch(e){
+        showConfigSetup('붙여넣은 내용에서 firebaseConfig를 읽지 못했어요. Firebase 콘솔에서 복사한 코드 전체를 그대로 붙여넣어 주세요.');
+      }
+    });
+  }
+
+  function showNameSetup(){
+    el.setupOverlay.style.display = 'flex';
+    el.setupOverlay.innerHTML =
+      '<div class="setup-card">' +
+      '<h2>당신은 누구인가요?</h2>' +
+      '<p>이 이름이 활동 기록에 "누가 추가/체크했는지" 표시돼요. 상대방은 상대방 폰에서 각자 이름을 입력하면 돼요.</p>' +
+      '<input type="text" id="nameInput" placeholder="예: Tate">' +
+      '<button class="setup-primary-btn" id="nameSaveBtn" disabled>시작하기</button>' +
+      '<button class="setup-secondary" id="resetConfigBtn">저장소 설정 다시 하기</button>' +
+      '</div>';
+    var input = document.getElementById('nameInput');
+    var btn = document.getElementById('nameSaveBtn');
+    input.addEventListener('input', function(){ btn.disabled = !input.value.trim(); });
+    input.focus();
+    btn.addEventListener('click', function(){
+      var name = input.value.trim();
+      if(!name) return;
+      localStorage.setItem(LS_NAME_KEY, name);
+      userName = name;
+      boot();
+    });
+    document.getElementById('resetConfigBtn').addEventListener('click', function(){
+      localStorage.removeItem(LS_CONFIG_KEY);
+      fbConfig = null;
+      boot();
+    });
+  }
+
+  function hideSetup(){
+    el.setupOverlay.style.display = 'none';
+    el.setupOverlay.innerHTML = '';
+  }
+
+  function startApp(){
+    hideSetup();
+    el.historyBtn.style.display = 'flex';
+    maybeShowIosHint();
+    if(!window.firebase){
+      loadScript(FB_APP_URL).then(function(){ return loadScript(FB_FIRESTORE_URL); }).then(initFirebase).catch(function(){
+        flashPill('Firebase 라이브러리를 불러오지 못했어요');
+      });
+    } else {
+      initFirebase();
+    }
+  }
+
+  function initFirebase(){
+    try{
+      if(!firebase.apps || !firebase.apps.length){ firebase.initializeApp(fbConfig); }
+      fbStore = firebase.firestore();
+    }catch(e){
+      console.error(e);
+      localStorage.removeItem(LS_CONFIG_KEY);
+      fbConfig = null;
+      showConfigSetup('연결에 실패했어요. 설정 내용을 다시 확인해주세요.');
+      return;
+    }
+    subscribeItems();
+    subscribeHistory();
+    seedIfNeeded();
+  }
+
+  function boot(){
+    var savedConfig = localStorage.getItem(LS_CONFIG_KEY);
+    var savedName = localStorage.getItem(LS_NAME_KEY);
+    if(!savedConfig){ showConfigSetup(); return; }
+    try{ fbConfig = JSON.parse(savedConfig); }catch(e){ localStorage.removeItem(LS_CONFIG_KEY); showConfigSetup(); return; }
+    if(!savedName){ showNameSetup(); return; }
+    userName = savedName;
+    startApp();
+  }
+
+  renderCatalogPanel();
+  renderMain();
+  boot();
+
+})();
+</script>
+</body>
+</html>
