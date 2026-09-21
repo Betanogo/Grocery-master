@@ -57,7 +57,7 @@
   /* ---------- header ---------- */
   header.top{
     position:sticky; top:0; z-index:30; background:var(--bg);
-    padding:14px 16px 10px; border-bottom:1px solid transparent;
+    padding:calc(14px + env(safe-area-inset-top)) 16px 10px; border-bottom:1px solid transparent;
     transition:border-color .2s ease;
   }
   header.top.scrolled{ border-bottom-color:var(--border); }
@@ -100,6 +100,13 @@
     transition:background .15s ease, border-color .15s ease, color .15s ease;
   }
   .icon-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+
+  .tab-bar{ display:flex; gap:8px; margin-top:10px; }
+  .tab-btn{
+    flex:1; height:38px; border-radius:999px; border:1.5px solid var(--border);
+    background:var(--surface); color:var(--text-soft); font-size:13.5px; font-weight:600; cursor:pointer;
+  }
+  .tab-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
 
   .list-search-panel{ overflow:hidden; max-height:0; transition:max-height .22s ease; }
   .list-search-panel.open{ max-height:60px; margin-top:8px; }
@@ -153,6 +160,16 @@
   .unit-chips{ display:flex; gap:6px; flex:1; flex-wrap:wrap; }
   .unit-chip{ padding:7px 13px; border-radius:999px; border:1.5px solid var(--border); background:var(--surface); color:var(--text-soft); font-size:13.5px; font-weight:500; cursor:pointer; }
   .unit-chip.sel{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .loc-row{ margin-top:10px; }
+  .loc-input{
+    width:100%; height:38px; border:1.5px solid var(--border); border-radius:999px;
+    padding:0 14px; font-size:13.5px; background:var(--surface); color:var(--text); outline:none;
+  }
+  .loc-input:focus{ border-color:var(--accent); }
+  .loc-tag{
+    display:inline-block; margin-top:2px; font-size:11px; font-weight:600; color:var(--accent);
+    background:var(--accent-soft); border-radius:999px; padding:2px 9px;
+  }
   .qty-sheet .row2{ display:flex; gap:8px; }
   .confirm-add-btn{ flex:1; height:38px; border:none; border-radius:999px; background:var(--accent); color:#fff; font-size:14.5px; font-weight:700; cursor:pointer; }
   .cancel-add-btn{ height:38px; padding:0 16px; border:1.5px solid var(--border); border-radius:999px; background:var(--surface); color:var(--text-soft); font-size:14px; font-weight:500; cursor:pointer; }
@@ -319,8 +336,12 @@
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
     </div>
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn active" data-tab="shopping" id="tabShoppingBtn">🛒 오늘 장보기</button>
+      <button class="tab-btn" data-tab="pantry" id="tabPantryBtn">🏠 집에 있는 재료</button>
+    </div>
     <div class="list-search-panel" id="listSearchPanel">
-      <input id="listSearchInput" type="text" placeholder="오늘 리스트에서 검색" autocomplete="off">
+      <input id="listSearchInput" type="text" placeholder="리스트에서 검색" autocomplete="off">
     </div>
     <div class="catalog-panel" id="catalogPanel" style="display:none;"></div>
   </header>
@@ -486,6 +507,10 @@
   var editingItemId = null;
   var editQty = 1;
   var editUnit = "개";
+  var editLocation = "";
+  var activeTab = "shopping"; // 'shopping' | 'pantry'
+  var pantryItems = [];
+  var pendingLocation = "";
 
   var el = {
     catalogInput: document.getElementById('catalogInput'),
@@ -505,7 +530,9 @@
     historyBackdrop: document.getElementById('historyBackdrop'),
     historyCloseBtn: document.getElementById('historyCloseBtn'),
     historyList: document.getElementById('historyList'),
-    setupOverlay: document.getElementById('setupOverlay')
+    setupOverlay: document.getElementById('setupOverlay'),
+    tabShoppingBtn: document.getElementById('tabShoppingBtn'),
+    tabPantryBtn: document.getElementById('tabPantryBtn')
   };
 
   function escapeHtml(s){
@@ -564,11 +591,12 @@
 
   function openQtySheet(name, custom, unit){
     pendingAdd = { name: name, custom: custom };
-    pendingQty = 1; pendingUnit = unit || "개";
+    pendingQty = 1; pendingUnit = unit || "개"; pendingLocation = "";
     renderCatalogPanel();
   }
 
   function renderQtySheetOnly(){
+    var isPantry = activeTab === 'pantry';
     var html = '<div class="catalog-row" style="border-bottom:1px solid var(--border);">' +
       '<div class="names"><div class="name-ko">' + escapeHtml(pendingAdd.name) + '</div>' +
       (pendingAdd.custom ? '<div class="name-en">직접 추가</div>' : '') + '</div>' +
@@ -583,8 +611,9 @@
       '<div class="unit-chips" id="unitChips">' +
       UNITS.map(function(u){ return '<div class="unit-chip' + (u===pendingUnit ? ' sel' : '') + '" data-unit="' + u + '">' + u + '</div>'; }).join('') +
       '</div></div>' +
+      (isPantry ? '<div class="loc-row"><input class="loc-input" id="pendingLocInput" type="text" placeholder="위치 (예: 냉동실, 냉장고, 팬트리 맨윗칸)" value="' + escapeHtml(pendingLocation) + '"></div>' : '') +
       '<div class="row2"><button class="cancel-add-btn" id="cancelQtyBtn2">취소</button>' +
-      '<button class="confirm-add-btn" id="confirmAddBtn">리스트에 추가</button></div></div>';
+      '<button class="confirm-add-btn" id="confirmAddBtn">' + (isPantry ? '재고에 추가' : '리스트에 추가') + '</button></div></div>';
 
     el.catalogPanel.innerHTML = html;
     el.catalogPanel.style.display = 'block';
@@ -609,13 +638,16 @@
         chip.classList.add('sel');
       });
     });
+    var locInput = document.getElementById('pendingLocInput');
+    if(locInput) locInput.addEventListener('input', function(){ pendingLocation = locInput.value; });
     document.getElementById('confirmAddBtn').addEventListener('click', confirmAdd);
   }
 
   function confirmAdd(){
     if(!pendingAdd) return;
     var name = pendingAdd.name, qty = pendingQty > 0 ? pendingQty : 1, unit = pendingUnit;
-    addItemToList(name, qty, unit);
+    if(activeTab === 'pantry'){ addPantryItem(name, qty, unit, pendingLocation.trim()); }
+    else { addItemToList(name, qty, unit); }
     pendingAdd = null; catalogQuery = ""; el.catalogInput.value = "";
     renderCatalogPanel();
   }
@@ -653,14 +685,162 @@
       .then(function(){ logHistory('clear', null, count); flashPill('오늘 장보기 완료! 리스트를 비웠어요'); })
       .catch(function(e){ console.error('clear failed', e); });
   }
-  function logHistory(type, itemName, count, qty, unit){
+  function logHistory(type, itemName, count, qty, unit, target){
     if(!fbStore) return;
-    fbStore.collection('history').add({ type:type, item:itemName||null, count:count||null, qty:(qty===undefined?null:qty), unit:unit||null, who:userName, at:Date.now() })
+    fbStore.collection('history').add({ type:type, item:itemName||null, count:count||null, qty:(qty===undefined?null:qty), unit:unit||null, target:target||'shopping', who:userName, at:Date.now() })
       .catch(function(e){ console.error('history log failed', e); });
+  }
+
+  /* ---- pantry (집에 있는 재료) data ops ---- */
+  function addPantryItem(name, qty, unit, location){
+    if(!fbStore) return;
+    fbStore.collection('pantry').add({ name:name, qty:qty, unit:unit, location:location||'', addedAt:Date.now(), addedBy:userName })
+      .then(function(){ logHistory('add', name, null, qty, unit, 'pantry'); })
+      .catch(function(e){ console.error('pantry add failed', e); flashPill('추가 실패 — 연결을 확인해주세요'); });
+  }
+  function updatePantryItem(item, qty, unit, location){
+    if(!fbStore) return;
+    fbStore.collection('pantry').doc(item.id).update({ qty:qty, unit:unit, location:location||'' })
+      .then(function(){ logHistory('edit', item.name, null, qty, unit, 'pantry'); })
+      .catch(function(e){ console.error(e); flashPill('수정 실패 — 연결을 확인해주세요'); });
+  }
+  function deletePantryItem(item){
+    if(!fbStore) return;
+    fbStore.collection('pantry').doc(item.id).delete()
+      .then(function(){ logHistory('delete', item.name, null, undefined, undefined, 'pantry'); })
+      .catch(function(e){ console.error(e); });
   }
 
   /* ================= main render ================= */
   function renderMain(){
+    el.tabShoppingBtn.classList.toggle('active', activeTab === 'shopping');
+    el.tabPantryBtn.classList.toggle('active', activeTab === 'pantry');
+    if(activeTab === 'pantry'){ renderPantryTab(); } else { renderShoppingTab(); }
+  }
+
+  function editPanelHtml(item, showLocation){
+    var html = '<div class="item-edit-panel" data-edit-panel="' + item.id + '">' +
+      '<div class="row1" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">' +
+      '<div class="qty-stepper"><button id="editQtyMinus" aria-label="빼기">−</button>' +
+      '<input id="editQtyInput" type="number" min="0" step="0.1" value="' + editQty + '">' +
+      '<button id="editQtyPlus" aria-label="더하기">+</button></div>' +
+      '<div class="unit-chips" id="editUnitChips">' +
+      UNITS.map(function(u){ return '<div class="unit-chip' + (u===editUnit ? ' sel' : '') + '" data-unit="' + u + '">' + u + '</div>'; }).join('') +
+      '</div></div>';
+    if(showLocation){
+      html += '<div class="loc-row"><input class="loc-input" id="editLocInput" type="text" placeholder="위치 (예: 냉동실, 냉장고)" value="' + escapeHtml(editLocation) + '"></div>';
+    }
+    html += '<div class="row2" style="display:flex; gap:8px; margin-top:10px;"><button class="cancel-add-btn" id="editCancelBtn">취소</button>' +
+      '<button class="confirm-add-btn" id="editSaveBtn">저장</button></div></div>';
+    return html;
+  }
+
+  function itemRowHtml(item, showCheckbox, showLocation){
+    var html = '<div class="item-row' + (showCheckbox && item.checked ? ' done' : '') + '" data-id="' + item.id + '">';
+    if(showCheckbox){
+      html += '<div class="checkbox' + (item.checked ? ' checked' : '') + '" data-toggle="' + item.id + '">' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>' +
+        '<div class="item-body" data-toggle="' + item.id + '">';
+    } else {
+      html += '<div class="item-body" style="cursor:default;">';
+    }
+    html += '<div class="item-name">' + escapeHtml(item.name) + '</div>' +
+      '<div class="item-qty">' + formatQty(item.qty) + item.unit +
+      (showLocation && item.location ? ' <span class="loc-tag">' + escapeHtml(item.location) + '</span>' : '') +
+      '</div></div>' +
+      '<button class="edit-btn" data-edit="' + item.id + '" aria-label="수정">' +
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>' +
+      '<button class="del-btn" data-del="' + item.id + '" aria-label="삭제">' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div>';
+    if(editingItemId === item.id) html += editPanelHtml(item, showLocation);
+    return html;
+  }
+
+  function groupedListHtml(sourceArray, showCheckbox, showLocation){
+    var groups = {};
+    sourceArray.forEach(function(item){
+      var cat = categoryOf(item.name);
+      if(!groups[cat]) groups[cat] = [];
+      groups[cat].push(item);
+    });
+    var orderedCats = CATEGORY_ORDER.filter(function(c){ return groups[c] && groups[c].length; });
+    Object.keys(groups).forEach(function(c){ if(orderedCats.indexOf(c) === -1) orderedCats.push(c); });
+    var html = '';
+    orderedCats.forEach(function(cat){
+      html += '<div class="cat-label">' + escapeHtml(cat) + '</div><div class="list-group">';
+      groups[cat].forEach(function(item){ html += itemRowHtml(item, showCheckbox, showLocation); });
+      html += '</div>';
+    });
+    return html;
+  }
+
+  function wireItemEvents(sourceArray, opts){
+    if(opts.toggleFn){
+      el.main.querySelectorAll('[data-toggle]').forEach(function(node){
+        node.addEventListener('click', function(){
+          var item = sourceArray.find(function(i){ return i.id === node.getAttribute('data-toggle'); });
+          if(item) opts.toggleFn(item);
+        });
+      });
+    }
+    el.main.querySelectorAll('[data-del]').forEach(function(node){
+      node.addEventListener('click', function(e){
+        e.stopPropagation();
+        var item = sourceArray.find(function(i){ return i.id === node.getAttribute('data-del'); });
+        if(item) opts.deleteFn(item);
+      });
+    });
+    el.main.querySelectorAll('[data-edit]').forEach(function(node){
+      node.addEventListener('click', function(e){
+        e.stopPropagation();
+        var id = node.getAttribute('data-edit');
+        if(editingItemId === id){ editingItemId = null; renderMain(); return; }
+        var item = sourceArray.find(function(i){ return i.id === id; });
+        if(!item) return;
+        editingItemId = id; editQty = item.qty; editUnit = item.unit; editLocation = item.location || "";
+        renderMain();
+      });
+    });
+    var editPanel = document.querySelector('[data-edit-panel]');
+    if(editPanel){
+      var editQtyInput = document.getElementById('editQtyInput');
+      document.getElementById('editQtyMinus').addEventListener('click', function(){
+        var v = Math.max(0, (parseFloat(editQtyInput.value)||0) - 1); editQtyInput.value = v; editQty = v;
+      });
+      document.getElementById('editQtyPlus').addEventListener('click', function(){
+        var v = (parseFloat(editQtyInput.value)||0) + 1; editQtyInput.value = v; editQty = v;
+      });
+      editQtyInput.addEventListener('click', function(e){ e.stopPropagation(); });
+      editQtyInput.addEventListener('input', function(){ editQty = parseFloat(editQtyInput.value)||0; });
+      document.getElementById('editUnitChips').querySelectorAll('.unit-chip').forEach(function(chip){
+        chip.addEventListener('click', function(e){
+          e.stopPropagation();
+          editUnit = chip.getAttribute('data-unit');
+          document.getElementById('editUnitChips').querySelectorAll('.unit-chip').forEach(function(c){ c.classList.remove('sel'); });
+          chip.classList.add('sel');
+        });
+      });
+      var editLocInput = document.getElementById('editLocInput');
+      if(editLocInput){
+        editLocInput.addEventListener('click', function(e){ e.stopPropagation(); });
+        editLocInput.addEventListener('input', function(){ editLocation = editLocInput.value; });
+      }
+      document.getElementById('editCancelBtn').addEventListener('click', function(e){
+        e.stopPropagation(); editingItemId = null; renderMain();
+      });
+      document.getElementById('editSaveBtn').addEventListener('click', function(e){
+        e.stopPropagation();
+        var item = sourceArray.find(function(i){ return i.id === editingItemId; });
+        var qty = editQty > 0 ? editQty : 1;
+        if(item) opts.updateFn(item, qty, editUnit, editLocation.trim());
+        editingItemId = null;
+        renderMain();
+      });
+      editPanel.addEventListener('click', function(e){ e.stopPropagation(); });
+    }
+  }
+
+  function renderShoppingTab(){
     var visibleItems = items;
     if(listSearchOpen && listSearchQuery.trim()){
       var nq = norm(listSearchQuery);
@@ -699,109 +879,47 @@
     if(visibleItems.length === 0){
       html += '<div class="empty-search" style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-m);">검색 결과가 없어요</div>';
     } else {
-      var groups = {};
-      visibleItems.forEach(function(item){
-        var cat = categoryOf(item.name);
-        if(!groups[cat]) groups[cat] = [];
-        groups[cat].push(item);
-      });
-      var orderedCats = CATEGORY_ORDER.filter(function(c){ return groups[c] && groups[c].length; });
-      Object.keys(groups).forEach(function(c){ if(orderedCats.indexOf(c) === -1) orderedCats.push(c); });
-
-      orderedCats.forEach(function(cat){
-        html += '<div class="cat-label">' + escapeHtml(cat) + '</div><div class="list-group">';
-        groups[cat].forEach(function(item){
-          html += '<div class="item-row' + (item.checked ? ' done' : '') + '" data-id="' + item.id + '">' +
-            '<div class="checkbox' + (item.checked ? ' checked' : '') + '" data-toggle="' + item.id + '">' +
-            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>' +
-            '<div class="item-body" data-toggle="' + item.id + '">' +
-            '<div class="item-name">' + escapeHtml(item.name) + '</div>' +
-            '<div class="item-qty">' + formatQty(item.qty) + item.unit + '</div></div>' +
-            '<button class="edit-btn" data-edit="' + item.id + '" aria-label="수정">' +
-            '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>' +
-            '<button class="del-btn" data-del="' + item.id + '" aria-label="삭제">' +
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div>';
-          if(editingItemId === item.id){
-            html += '<div class="item-edit-panel" data-edit-panel="' + item.id + '">' +
-              '<div class="row1" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">' +
-              '<div class="qty-stepper"><button id="editQtyMinus" aria-label="빼기">−</button>' +
-              '<input id="editQtyInput" type="number" min="0" step="0.1" value="' + editQty + '">' +
-              '<button id="editQtyPlus" aria-label="더하기">+</button></div>' +
-              '<div class="unit-chips" id="editUnitChips">' +
-              UNITS.map(function(u){ return '<div class="unit-chip' + (u===editUnit ? ' sel' : '') + '" data-unit="' + u + '">' + u + '</div>'; }).join('') +
-              '</div></div>' +
-              '<div class="row2" style="display:flex; gap:8px;"><button class="cancel-add-btn" id="editCancelBtn">취소</button>' +
-              '<button class="confirm-add-btn" id="editSaveBtn">저장</button></div></div>';
-          }
-        });
-        html += '</div>';
-      });
+      html += groupedListHtml(visibleItems, true, false);
     }
 
     el.main.innerHTML = html;
+    wireItemEvents(items, { updateFn: updateItemQty, deleteFn: deleteItem, toggleFn: toggleItem });
 
-    el.main.querySelectorAll('[data-toggle]').forEach(function(node){
-      node.addEventListener('click', function(){
-        var item = items.find(function(i){ return i.id === node.getAttribute('data-toggle'); });
-        if(item) toggleItem(item);
-      });
-    });
-    el.main.querySelectorAll('[data-del]').forEach(function(node){
-      node.addEventListener('click', function(e){
-        e.stopPropagation();
-        var item = items.find(function(i){ return i.id === node.getAttribute('data-del'); });
-        if(item) deleteItem(item);
-      });
-    });
-    el.main.querySelectorAll('[data-edit]').forEach(function(node){
-      node.addEventListener('click', function(e){
-        e.stopPropagation();
-        var id = node.getAttribute('data-edit');
-        if(editingItemId === id){ editingItemId = null; renderMain(); return; }
-        var item = items.find(function(i){ return i.id === id; });
-        if(!item) return;
-        editingItemId = id; editQty = item.qty; editUnit = item.unit;
-        renderMain();
-      });
-    });
-    var editPanel = document.querySelector('[data-edit-panel]');
-    if(editPanel){
-      var editQtyInput = document.getElementById('editQtyInput');
-      document.getElementById('editQtyMinus').addEventListener('click', function(){
-        var v = Math.max(0, (parseFloat(editQtyInput.value)||0) - 1); editQtyInput.value = v; editQty = v;
-      });
-      document.getElementById('editQtyPlus').addEventListener('click', function(){
-        var v = (parseFloat(editQtyInput.value)||0) + 1; editQtyInput.value = v; editQty = v;
-      });
-      editQtyInput.addEventListener('click', function(e){ e.stopPropagation(); });
-      editQtyInput.addEventListener('input', function(){ editQty = parseFloat(editQtyInput.value)||0; });
-      document.getElementById('editUnitChips').querySelectorAll('.unit-chip').forEach(function(chip){
-        chip.addEventListener('click', function(e){
-          e.stopPropagation();
-          editUnit = chip.getAttribute('data-unit');
-          document.getElementById('editUnitChips').querySelectorAll('.unit-chip').forEach(function(c){ c.classList.remove('sel'); });
-          chip.classList.add('sel');
-        });
-      });
-      document.getElementById('editCancelBtn').addEventListener('click', function(e){
-        e.stopPropagation(); editingItemId = null; renderMain();
-      });
-      document.getElementById('editSaveBtn').addEventListener('click', function(e){
-        e.stopPropagation();
-        var item = items.find(function(i){ return i.id === editingItemId; });
-        var qty = editQty > 0 ? editQty : 1;
-        if(item) updateItemQty(item, qty, editUnit);
-        editingItemId = null;
-        renderMain();
-      });
-      editPanel.addEventListener('click', function(e){ e.stopPropagation(); });
-    }
     var clearBtn = document.getElementById('clearListBtn');
     if(clearBtn) clearBtn.addEventListener('click', function(){ clearConfirmOpen = true; renderMain(); });
     var clearNoBtn = document.getElementById('clearNoBtn');
     if(clearNoBtn) clearNoBtn.addEventListener('click', function(){ clearConfirmOpen = false; renderMain(); });
     var clearYesBtn = document.getElementById('clearYesBtn');
     if(clearYesBtn) clearYesBtn.addEventListener('click', function(){ clearConfirmOpen = false; clearList(); });
+  }
+
+  function renderPantryTab(){
+    var visiblePantry = pantryItems;
+    if(listSearchOpen && listSearchQuery.trim()){
+      var nq = norm(listSearchQuery);
+      visiblePantry = pantryItems.filter(function(it){
+        return norm(it.name).indexOf(nq) !== -1 || norm(it.location).indexOf(nq) !== -1;
+      });
+    }
+    el.listSearchToggle.style.display = pantryItems.length > 0 ? 'flex' : 'none';
+
+    if(pantryItems.length === 0){
+      el.main.innerHTML = '<div class="empty-state"><div class="emoji">🏠</div>' +
+        '<h2>아직 등록된 재료가 없어요</h2>' +
+        '<p>위 검색창에서 식재료를 찾아<br>집에 있는 재료와 위치를 기록해보세요.</p></div>';
+      return;
+    }
+
+    var html = '<div class="section-label"><span>집에 있는 재료</span><span>' + pantryItems.length + '개</span></div>';
+
+    if(visiblePantry.length === 0){
+      html += '<div class="empty-search" style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-m);">검색 결과가 없어요</div>';
+    } else {
+      html += groupedListHtml(visiblePantry, false, true);
+    }
+
+    el.main.innerHTML = html;
+    wireItemEvents(pantryItems, { updateFn: updatePantryItem, deleteFn: deletePantryItem, toggleFn: null });
   }
 
   function formatQty(q){
@@ -820,12 +938,13 @@
     return Math.floor(hr/24) + '일 전';
   }
   function actionText(h){
+    var prefix = (h.target === 'pantry') ? '[재고] ' : '';
     switch(h.type){
-      case 'add': return escapeHtml(h.item) + ' 추가함';
+      case 'add': return prefix + escapeHtml(h.item) + ' 추가함';
       case 'check': return escapeHtml(h.item) + ' 체크함';
       case 'uncheck': return escapeHtml(h.item) + ' 체크 해제함';
-      case 'delete': return escapeHtml(h.item) + ' 삭제함';
-      case 'edit': return escapeHtml(h.item) + '을(를) ' + formatQty(h.qty) + (h.unit||'') + '(으)로 수정함';
+      case 'delete': return prefix + escapeHtml(h.item) + ' 삭제함';
+      case 'edit': return prefix + escapeHtml(h.item) + '을(를) ' + formatQty(h.qty) + (h.unit||'') + '(으)로 수정함';
       case 'clear': return '리스트 ' + (h.count||0) + '개 비움';
       default: return '';
     }
@@ -941,6 +1060,19 @@
   });
   el.listSearchInput.addEventListener('input', function(){ listSearchQuery = el.listSearchInput.value; renderMain(); });
 
+  function switchTab(tab){
+    if(activeTab === tab) return;
+    activeTab = tab;
+    editingItemId = null;
+    pendingAdd = null;
+    catalogQuery = ""; el.catalogInput.value = ""; el.catalogPanel.style.display = 'none';
+    listSearchOpen = false; listSearchQuery = ""; el.listSearchInput.value = "";
+    el.listSearchToggle.classList.remove('active'); el.listSearchPanel.classList.remove('open');
+    renderMain();
+  }
+  el.tabShoppingBtn.addEventListener('click', function(){ switchTab('shopping'); });
+  el.tabPantryBtn.addEventListener('click', function(){ switchTab('pantry'); });
+
   window.addEventListener('scroll', function(){ el.topHeader.classList.toggle('scrolled', window.scrollY > 4); });
 
   /* ================= firestore bootstrap ================= */
@@ -953,6 +1085,16 @@
       renderMain();
       flashPill('실시간으로 업데이트됨');
     }, function(err){ console.error('items snapshot error', err); flashPill('연결이 끊어졌어요'); });
+  }
+  function subscribePantry(){
+    fbStore.collection('pantry').orderBy('addedAt','asc').onSnapshot(function(snap){
+      pantryItems = snap.docs.map(function(d){
+        var v = d.data();
+        return { id:d.id, name:v.name, qty:v.qty, unit:v.unit, location:v.location||'', addedAt:v.addedAt, addedBy:v.addedBy };
+      });
+      renderMain();
+      flashPill('실시간으로 업데이트됨');
+    }, function(err){ console.error('pantry snapshot error', err); });
   }
   function subscribeHistory(){
     fbStore.collection('history').orderBy('at','desc').limit(50).onSnapshot(function(snap){
@@ -1080,6 +1222,7 @@
       return;
     }
     subscribeItems();
+    subscribePantry();
     subscribeHistory();
     seedIfNeeded();
   }
