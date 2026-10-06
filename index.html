@@ -41,7 +41,7 @@
   }
 
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0; padding:0;}
+  html,body{margin:0; padding:0; overflow-x:hidden; max-width:100%;}
   body{
     background:var(--bg); color:var(--text);
     font-family:'Roboto','IBM Plex Sans KR',sans-serif;
@@ -51,7 +51,7 @@
 
   .app{
     max-width:480px; margin:0 auto; min-height:100dvh;
-    background:var(--bg); display:flex; flex-direction:column; position:relative;
+    background:var(--bg); display:flex; flex-direction:column; position:relative; overflow-x:clip; width:100%;
   }
 
   /* ---------- header ---------- */
@@ -79,16 +79,16 @@
   }
   .history-btn.has-new .dotnew{ display:block; }
 
-  .search-row{ display:flex; align-items:center; gap:8px; }
+  .search-row{ display:flex; align-items:center; gap:8px; width:100%; min-width:0; }
   .search-box{
-    flex:1; display:flex; align-items:center; gap:8px;
+    flex:1 1 0; min-width:0; display:flex; align-items:center; gap:8px;
     background:var(--surface); border:1.5px solid var(--border);
-    border-radius:999px; padding:0 14px; height:46px;
+    border-radius:999px; padding:0 12px; height:46px;
     transition:border-color .15s ease, box-shadow .15s ease;
   }
   .search-box:focus-within{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
   .search-box svg{ flex:none; color:var(--text-faint); }
-  .search-box input{ flex:1; border:none; outline:none; background:transparent; font-size:15.5px; color:var(--text); min-width:0; height:100%; }
+  .search-box input{ flex:1; border:none; outline:none; background:transparent; font-size:16px; color:var(--text); min-width:0; width:100%; height:100%; text-overflow:ellipsis; }
   .search-box input::placeholder{ color:var(--text-faint); }
   .search-box .clear-btn{ flex:none; border:none; background:none; color:var(--text-faint); padding:4px; cursor:pointer; display:flex; }
 
@@ -112,7 +112,7 @@
   .list-search-panel.open{ max-height:60px; margin-top:8px; }
   .list-search-panel input{
     width:100%; height:40px; border-radius:999px; border:1.5px solid var(--accent);
-    padding:0 14px; font-size:14.5px; background:var(--accent-soft); color:var(--text); outline:none;
+    padding:0 14px; font-size:16px; background:var(--accent-soft); color:var(--text); outline:none;
   }
 
   /* ---------- catalog dropdown ---------- */
@@ -398,6 +398,36 @@
   }
 
   ::-webkit-scrollbar{ width:0; height:0; }
+  .clear-checked-btn{
+    display:block; width:100%; margin-top:10px; height:44px; border-radius:999px;
+    border:1.5px solid var(--accent); background:var(--accent-soft); color:var(--accent);
+    font-size:14px; font-weight:700; cursor:pointer;
+  }
+  .bell-btn{
+    flex:none; width:34px; height:34px; border-radius:50%;
+    border:1.5px solid var(--border); background:var(--surface);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-soft); cursor:pointer; position:relative;
+  }
+  .bell-btn.on{ color:var(--accent); border-color:var(--accent); }
+  .notif-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:80; display:none; }
+  .notif-backdrop.open{ display:block; }
+  .notif-sheet{
+    position:fixed; left:50%; bottom:0; transform:translate(-50%,100%); width:100%; max-width:480px; z-index:81;
+    background:var(--surface); border-radius:20px 20px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom));
+    transition:transform .22s ease; max-height:85dvh; overflow-y:auto; box-shadow:var(--shadow-card);
+  }
+  .notif-sheet.open{ transform:translate(-50%,0); }
+  .notif-sheet h3{ margin:0 0 4px; font-size:17px; }
+  .notif-sheet p{ margin:4px 0 12px; font-size:13px; color:var(--text-soft); line-height:1.5; }
+  .notif-sheet .nrow{ border:1px solid var(--border); border-radius:14px; padding:12px; margin-bottom:10px; }
+  .notif-sheet .nrow b{ font-size:14px; }
+  .notif-sheet button.nbtn{
+    margin-top:8px; width:100%; height:42px; border-radius:999px; border:none;
+    background:var(--accent); color:#fff; font-size:14px; font-weight:700; cursor:pointer;
+  }
+  .notif-sheet button.nbtn.sec{ background:var(--surface); color:var(--text-soft); border:1.5px solid var(--border); }
+  .notif-sheet .nstate{ font-size:12.5px; margin-top:6px; color:var(--text-soft); }
 </style>
 </head>
 <body>
@@ -408,6 +438,9 @@
       <h1>오늘 뭐 사지</h1>
       <div class="right-meta">
         <span class="sub" id="dateLabel"></span>
+        <button class="bell-btn" id="bellBtn" aria-label="알림 설정" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        </button>
         <button class="history-btn" id="historyBtn" aria-label="활동 기록" style="display:none;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
           <span class="dotnew" id="historyDot"></span>
@@ -469,12 +502,7 @@
 <script>
 (function(){
   "use strict";
-
-  if('serviceWorker' in navigator){
-    window.addEventListener('load', function(){
-      navigator.serviceWorker.register('sw.js').catch(function(e){ console.error('sw register failed', e); });
-    });
-  }
+  if('serviceWorker' in navigator){ window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
 
 
   /* ================= catalog ================= */
@@ -602,6 +630,7 @@
   var pendingQty = 1;
   var pendingUnit = "개";
   var clearConfirmOpen = false;
+  var usersRegistry = [];
   var historyOpen = false;
   var lastSeenHistoryAt = 0;
   var editingItemId = null;
@@ -866,10 +895,19 @@
       .then(function(){ logHistory('clear', null, count); flashPill('오늘 장보기 완료! 리스트를 비웠어요'); })
       .catch(function(e){ console.error('clear failed', e); });
   }
+  function clearChecked(){
+    if(!fbStore) return;
+    var toDelete = items.filter(function(i){ return i.checked; }); var count = toDelete.length;
+    if(!count) return;
+    Promise.all(toDelete.map(function(it){ return fbStore.collection('items').doc(it.id).delete(); }))
+      .then(function(){ logHistory('clearChecked', null, count); flashPill('체크된 ' + count + '개를 지웠어요'); })
+      .catch(function(e){ console.error('clearChecked failed', e); });
+  }
   function logHistory(type, itemName, count, qty, unit, target){
     if(!fbStore) return;
     fbStore.collection('history').add({ type:type, item:itemName||null, count:count||null, qty:(qty===undefined?null:qty), unit:unit||null, target:target||'shopping', who:userName, at:Date.now() })
       .catch(function(e){ console.error('history log failed', e); });
+    if((type === 'add' || type === 'check') && (target || 'shopping') === 'shopping') sendPush(type, itemName);
   }
 
   /* ---- pantry (집에 있는 재료) data ops ---- */
@@ -1156,6 +1194,9 @@
       '<div class="summary-copy"><div class="headline">' + doneCount + ' / ' + items.length + ' 완료</div>' +
       '<div class="sub">' + (allDone ? '오늘 장보기 끝!' : (items.length - doneCount) + '개 더 사야 해요') + '</div></div></div>';
 
+    if(doneCount > 0 && !allDone){
+      html += '<button class="clear-checked-btn" id="clearCheckedBtn">체크된 항목들 지우기 (' + doneCount + ')</button>';
+    }
     if(clearConfirmOpen){
       html += '<div class="confirm-clear"><span>리스트를 전부 비울까요?</span>' +
         '<button class="no-btn" id="clearNoBtn">취소</button>' +
@@ -1176,6 +1217,8 @@
     el.main.innerHTML = html;
     wireItemEvents(items, { updateFn: updateItemQty, deleteFn: deleteItem, toggleFn: toggleItem });
 
+    var clearCheckedBtn = document.getElementById('clearCheckedBtn');
+    if(clearCheckedBtn) clearCheckedBtn.addEventListener('click', clearChecked);
     var clearBtn = document.getElementById('clearListBtn');
     if(clearBtn) clearBtn.addEventListener('click', function(){ clearConfirmOpen = true; renderMain(); });
     var clearNoBtn = document.getElementById('clearNoBtn');
@@ -1481,6 +1524,7 @@
       case 'delete': return prefix + escapeHtml(h.item) + ' 삭제함';
       case 'edit': return prefix + escapeHtml(h.item) + '을(를) ' + formatQty(h.qty) + (h.unit||'') + '(으)로 수정함';
       case 'bulk': return prefix + (h.count||0) + '개 항목의 ' + (h.field==='category'?'카테고리':'위치') + '를 "' + escapeHtml(h.value||'') + '"로 일괄 변경함';
+      case 'clearChecked': return '체크된 ' + (h.count||0) + '개 지움';
       case 'clear': return '리스트 ' + (h.count||0) + '개 비움';
       default: return '';
     }
@@ -1514,6 +1558,101 @@
   }
   el.historyCloseBtn.addEventListener('click', closeHistory);
   el.historyBackdrop.addEventListener('click', closeHistory);
+
+  /* ================= notifications ================= */
+  var LS_NTFY_KEY = 'sg_ntfy_topic_v1';
+  var NTFY_BASE = 'https://ntfy.sh/';
+  var firstHistorySnap = true;
+  function myTopic(){ try{ return localStorage.getItem(LS_NTFY_KEY) || ''; }catch(e){ return ''; } }
+  function pushMessage(who, type, item){
+    return who + ': ' + item + (type === 'add' ? ' 추가함' : ' 체크함');
+  }
+  function sendPush(type, itemName){
+    if(!itemName) return;
+    var msg = pushMessage(userName, type, itemName);
+    usersRegistry.forEach(function(u){
+      if(!u || !u.topic || u.name === userName) return;
+      try{
+        fetch(NTFY_BASE + encodeURIComponent(u.topic), { method:'POST', body:msg }).catch(function(){});
+      }catch(e){}
+    });
+  }
+  function subscribeUsers(){
+    fbStore.collection('users').onSnapshot(function(snap){
+      usersRegistry = snap.docs.map(function(d){ return d.data(); });
+      if(notifOpen) renderNotifSheet();
+    }, function(err){ console.error('users snapshot error', err); });
+  }
+  function notifyIncoming(h){
+    var text = pushMessage(h.who || '누군가', h.type, h.item || '');
+    flashPill(text);
+    if(document.hidden && 'Notification' in window && Notification.permission === 'granted'){
+      try{ new Notification('오늘 뭐 사지', { body:text, tag:'sg-' + h.at }); }catch(e){}
+    }
+  }
+  function handleHistoryChanges(snap){
+    if(firstHistorySnap){ firstHistorySnap = false; return; }
+    snap.docChanges().forEach(function(ch){
+      if(ch.type !== 'added') return;
+      var h = ch.doc.data();
+      if(!h || h.who === userName || (h.target || 'shopping') !== 'shopping') return;
+      if(h.type !== 'add' && h.type !== 'check') return;
+      if(snap.metadata && snap.metadata.hasPendingWrites) return;
+      notifyIncoming(h);
+    });
+  }
+
+  var notifOpen = false;
+  var notifBackdrop = document.createElement('div'); notifBackdrop.className = 'notif-backdrop';
+  var notifSheet = document.createElement('div'); notifSheet.className = 'notif-sheet';
+  document.body.appendChild(notifBackdrop); document.body.appendChild(notifSheet);
+  function renderNotifSheet(){
+    var perm = ('Notification' in window) ? Notification.permission : 'unsupported';
+    var topic = myTopic();
+    var others = usersRegistry.filter(function(u){ return u && u.name !== userName && u.topic; });
+    var h = '<h3>알림 설정</h3><p>상대방이 항목을 추가하거나 체크하면 알려줘요.</p>';
+    h += '<div class="nrow"><b>① 앱 안 알림</b><div class="nstate">앱을 열어두면 상대방이 추가/체크할 때 상단에 바로 표시돼요. (항상 켜짐)</div>';
+    if(perm === 'default') h += '<button class="nbtn sec" id="nPermBtn">앱이 백그라운드일 때도 브라우저 알림 받기</button>';
+    else if(perm === 'granted') h += '<div class="nstate">✓ 브라우저 알림 허용됨 (앱이 열려 있지만 화면 밖일 때)</div>';
+    else if(perm === 'denied') h += '<div class="nstate">브라우저 알림이 차단돼 있어요. 설정에서 허용해야 해요.</div>';
+    h += '</div>';
+    h += '<div class="nrow"><b>② 앱을 닫아도 오는 푸시 (ntfy)</b>' +
+      '<div class="nstate">무료 ntfy 앱을 폰에 설치하고 아래 주제(topic)를 구독하면, 앱이 꺼져 있어도 폰 알림이 와요. 두 사람 모두 켜야 서로에게 가요.</div>';
+    if(topic){
+      h += '<div class="nstate">내 주제: <b style="user-select:all;">' + escapeHtml(topic) + '</b></div>' +
+        '<div class="nstate">ntfy 앱 → + → 위 주제 이름 입력 → 구독</div>' +
+        '<button class="nbtn sec" id="nOffBtn">푸시 끄기</button>';
+    } else {
+      h += '<button class="nbtn" id="nOnBtn">푸시 켜기</button>';
+    }
+    h += '<div class="nstate">현재 상대방 ' + others.length + '명 등록됨</div></div>';
+    h += '<button class="nbtn sec" id="nCloseBtn">닫기</button>';
+    notifSheet.innerHTML = h;
+    var b;
+    if((b = document.getElementById('nPermBtn'))) b.addEventListener('click', function(){
+      try{ Notification.requestPermission().then(renderNotifSheet); }catch(e){ renderNotifSheet(); }
+    });
+    if((b = document.getElementById('nOnBtn'))) b.addEventListener('click', function(){
+      var t = 'sg-' + Math.random().toString(36).slice(2,10) + Math.random().toString(36).slice(2,10);
+      try{ localStorage.setItem(LS_NTFY_KEY, t); }catch(e){}
+      if(fbStore) fbStore.collection('users').doc(userName).set({ name:userName, topic:t, at:Date.now() }).catch(function(e){ console.error(e); });
+      updateBellState(); renderNotifSheet();
+    });
+    if((b = document.getElementById('nOffBtn'))) b.addEventListener('click', function(){
+      try{ localStorage.removeItem(LS_NTFY_KEY); }catch(e){}
+      if(fbStore) fbStore.collection('users').doc(userName).delete().catch(function(e){ console.error(e); });
+      updateBellState(); renderNotifSheet();
+    });
+    if((b = document.getElementById('nCloseBtn'))) b.addEventListener('click', closeNotif);
+  }
+  function openNotif(){ notifOpen = true; renderNotifSheet(); notifBackdrop.classList.add('open'); notifSheet.classList.add('open'); }
+  function closeNotif(){ notifOpen = false; notifBackdrop.classList.remove('open'); notifSheet.classList.remove('open'); }
+  notifBackdrop.addEventListener('click', closeNotif);
+  function updateBellState(){
+    var bb = document.getElementById('bellBtn');
+    if(bb) bb.classList.toggle('on', !!myTopic());
+  }
+  document.getElementById('bellBtn').addEventListener('click', openNotif);
 
   /* ================= sync pill ================= */
   var pillTimer = null;
@@ -1656,6 +1795,7 @@
     fbStore.collection('history').orderBy('at','desc').limit(50).onSnapshot(function(snap){
       historyEntries = snap.docs.map(function(d){ return d.data(); });
       renderHistory();
+      handleHistoryChanges(snap);
     }, function(err){ console.error('history snapshot error', err); });
   }
   function seedIfNeeded(){
@@ -1756,6 +1896,8 @@
   function startApp(){
     hideSetup();
     el.historyBtn.style.display = 'flex';
+    document.getElementById('bellBtn').style.display = 'flex';
+    updateBellState();
     maybeShowIosHint();
     if(!window.firebase){
       loadScript(FB_APP_URL).then(function(){ return loadScript(FB_FIRESTORE_URL); }).then(initFirebase).catch(function(){
@@ -1781,6 +1923,7 @@
     subscribePantry();
     subscribeCustomCatalog();
     subscribeHistory();
+    subscribeUsers();
     seedIfNeeded();
   }
 
